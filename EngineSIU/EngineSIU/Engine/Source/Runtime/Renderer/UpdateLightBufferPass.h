@@ -88,7 +88,11 @@ private:
     ID3D11ShaderResourceView* PointLightIndexBufferSRV;
     ID3D11ShaderResourceView* SpotLightIndexBufferSRV;
 
-    static constexpr uint32 MAX_NUM_POINTLIGHTS = 50000;
-    static constexpr uint32 MAX_NUM_SPOTLIGHTS = 50000;
+    // Array for buffer update
+    TArray<FPointLightInfo> PointLightInfo;
+    TArray<FSpotLightInfo> SpotLightInfo;
+
+    static constexpr uint32 MAX_NUM_POINTLIGHTS = 1000;
+    static constexpr uint32 MAX_NUM_SPOTLIGHTS = 1000;
     static constexpr uint32 MAX_TILE = 10000;
 };

@@ -25,6 +25,11 @@ void FUpdateLightBufferPass::Initialize(FDXDBufferManager* InBufferManager, FGra
     CreatePointLightPerTilesBuffer();
     CreateSpotLightBuffer();
     CreateSpotLightPerTilesBuffer();
+
+    PointLightInfo.Reserve(MAX_NUM_POINTLIGHTS);
+    PointLightInfo.SetNum(MAX_NUM_POINTLIGHTS);
+    SpotLightInfo.Reserve(MAX_NUM_SPOTLIGHTS);
+    SpotLightInfo.SetNum(MAX_NUM_SPOTLIGHTS);
 }
 
 void FUpdateLightBufferPass::PrepareRenderArr()
@@ -327,8 +332,6 @@ void FUpdateLightBufferPass::UpdatePointLightBuffer()
         return;
     }
 
-    TArray<FPointLightInfo> TempBuffer;
-    TempBuffer.SetNum(MAX_NUM_POINTLIGHTS);
     for (uint32 LightIdx = 0; std::cmp_less(LightIdx, PointLights.Num()); ++LightIdx)
     {
         FPointLightInfo& LightInfo = PointLights[LightIdx]->GetPointLightInfo();
@@ -339,11 +342,11 @@ void FUpdateLightBufferPass::UpdatePointLightBuffer()
         }
         LightInfo.ShadowMapArrayIndex = LightIdx;
         LightInfo.ShadowBias = 0.005f;
-        TempBuffer[LightIdx] = LightInfo;
+        PointLightInfo[LightIdx] = LightInfo;
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(PointLightBuffer, 0, nullptr,
-        TempBuffer.GetData(), 0, 0);
+        PointLightInfo.GetData(), 0, 0);
 }
  
 void FUpdateLightBufferPass::UpdateSpotLightBuffer()
@@ -352,8 +355,7 @@ void FUpdateLightBufferPass::UpdateSpotLightBuffer()
     {
         return;
     }
-    TArray<FSpotLightInfo> TempBuffer;
-    TempBuffer.SetNum(MAX_NUM_SPOTLIGHTS);
+    
     for (uint32 Idx = 0; std::cmp_less(Idx, SpotLights.Num()); ++Idx)
     {
         FSpotLightInfo& LightInfo = SpotLights[Idx]->GetSpotLightInfo();
@@ -362,11 +364,11 @@ void FUpdateLightBufferPass::UpdateSpotLightBuffer()
         LightInfo.LightViewProj = SpotLights[Idx]->GetViewMatrix() * SpotLights[Idx]->GetProjectionMatrix();
         LightInfo.ShadowMapArrayIndex = Idx;
         LightInfo.ShadowBias = 0.005f;
-        TempBuffer[Idx] = LightInfo;
+        SpotLightInfo[Idx] = LightInfo;
     }
     // 이제 TempBuffer에 대해 업데이트
     Graphics->DeviceContext->UpdateSubresource(SpotLightBuffer, 0, nullptr,
-        TempBuffer.GetData(), 0, 0);
+        SpotLightInfo.GetData(), 0, 0);
 }
 
 void FUpdateLightBufferPass::UpdatePointLightPerTilesBuffer()
