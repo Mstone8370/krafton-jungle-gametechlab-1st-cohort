@@ -456,3 +456,5 @@ FodyWeavers.xsd
 .idea
 
 **/imgui.ini
+
+**/AutoSaves.scene
