@@ -8,6 +8,7 @@
 #include "UObject/Object.h"
 #include "PropertyEditor/ShowFlags.h"
 #include "DepthOfFieldRenderPass.h"
+#include "Stats/Stats.h"
 
 FPostProcessRenderPass::FPostProcessRenderPass()
 {

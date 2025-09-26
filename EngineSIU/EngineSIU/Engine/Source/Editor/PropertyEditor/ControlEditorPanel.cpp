@@ -657,7 +657,7 @@ void ControlEditorPanel::CreateFlagButton()
         "Unlit", "Wireframe",
         "Scene Depth", "World Normal", "World Tangent","Light Heat Map"
     };
-    constexpr uint32 ViewModeCount = std::size(ViewModeNames);
+    constexpr uint32 ViewModeCount = static_cast<uint32>(std::size(ViewModeNames));
     
     const int RawViewMode = static_cast<int>(ActiveViewport->GetViewMode());
     const int SafeIndex = (RawViewMode >= 0) ? (RawViewMode % ViewModeCount) : 0;
@@ -784,8 +784,8 @@ void ControlEditorPanel::OnResize(const HWND hWnd)
 {
     RECT ClientRect;
     GetClientRect(hWnd, &ClientRect);
-    Width = ClientRect.right - ClientRect.left;
-    Height = ClientRect.bottom - ClientRect.top;
+    Width = static_cast<float>(ClientRect.right - ClientRect.left);
+    Height = static_cast<float>(ClientRect.bottom - ClientRect.top);
 }
 
 void ControlEditorPanel::CreateLightSpawnButton(const ImVec2 InButtonSize, ImFont* IconFont)

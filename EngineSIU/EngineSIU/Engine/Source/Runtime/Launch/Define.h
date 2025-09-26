@@ -211,8 +211,8 @@ struct FPoint
 {
     FPoint() : x(0), y(0) {}
     FPoint(float _x, float _y) : x(_x), y(_y) {}
-    FPoint(long _x, long _y) : x(_x), y(_y) {}
-    FPoint(int _x, int _y) : x(_x), y(_y) {}
+    FPoint(long _x, long _y) : x(static_cast<float>(_x)), y(static_cast<float>(_y)) {}
+    FPoint(int _x, int _y) : x(static_cast<float>(_x)), y(static_cast<float>(_y)) {}
 
     float x, y;
 };

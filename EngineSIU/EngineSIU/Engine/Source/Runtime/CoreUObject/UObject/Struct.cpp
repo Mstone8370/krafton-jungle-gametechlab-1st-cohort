@@ -75,7 +75,7 @@ void UStruct::AddProperty(FProperty* Prop)
         return;
     }
 
-    PropertiesSize += Prop->Size;
+    PropertiesSize += static_cast<uint32>(Prop->Size);
     Properties.Add(Prop);
     PropertyMap.Add(FName(Prop->Name), Prop);
 }

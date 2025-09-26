@@ -461,10 +461,10 @@ void FEditorRenderPass::RenderPointlightInstanced(uint64 ShowFlag)
     
     BufferManager->BindConstantBuffer("SphereConstantBuffer", 11, EShaderStage::Vertex);
     int BufferIndex = 0;
-    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeSphere) * ConstantBufferSizeSphere; ++i)
+    for (uint32 i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeSphere) * ConstantBufferSizeSphere; ++i)
     {
         TArray<FConstantBufferDebugSphere> SubBuffer;
-        for (int j = 0; j < ConstantBufferSizeSphere; ++j)
+        for (uint32 j = 0; j < ConstantBufferSizeSphere; ++j)
         {
             if (BufferIndex < BufferAll.Num())
             {
@@ -533,10 +533,10 @@ void FEditorRenderPass::RenderSpotlightInstanced(uint64 ShowFlag)
 
     BufferManager->BindConstantBuffer("ConeConstantBuffer", 11, EShaderStage::Vertex);
     int BufferIndex = 0;
-    for (int i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeCone) * ConstantBufferSizeCone; ++i)
+    for (uint32 i = 0; i < (1 + BufferAll.Num() / ConstantBufferSizeCone) * ConstantBufferSizeCone; ++i)
     {
         TArray<FConstantBufferDebugCone> SubBuffer;
-        for (int j = 0; j < ConstantBufferSizeCone; ++j)
+        for (uint32 j = 0; j < ConstantBufferSizeCone; ++j)
         {
             if (BufferIndex < BufferAll.Num())
             {

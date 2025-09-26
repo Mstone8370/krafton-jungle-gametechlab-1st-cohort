@@ -2,6 +2,8 @@
 #include "GameFramework/GameMode.h"
 #include "Components/StaticMeshComponent.h"
 
+class RabbitCamera;
+
 enum class EPhotoType
 {
     NONE,
@@ -25,7 +27,7 @@ public:
 
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     
-    void JudgeCapturedPhoto(UPrimitiveComponent* CapturedComp,RabbitCamera* RabbitCam);
+    void JudgeCapturedPhoto(UPrimitiveComponent* CapturedComp, RabbitCamera* RabbitCam);
 
     void StartUIPictureEnd();
     

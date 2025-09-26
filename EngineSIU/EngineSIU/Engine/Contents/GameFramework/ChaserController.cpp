@@ -41,8 +41,8 @@ void AChaserController::UpdatePath()
     // TODO 
     CurrentPath.Empty();
     FGridNode* Node = new FGridNode();
-    Node->X = TargetLocation.X;
-    Node->Y = TargetLocation.Y;
+    Node->X = static_cast<int32>(TargetLocation.X);
+    Node->Y = static_cast<int32>(TargetLocation.Y);
     //CurrentPath.Add(Node);
 
     CurrentPathIndex = 0;

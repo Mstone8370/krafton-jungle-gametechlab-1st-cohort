@@ -6,6 +6,7 @@
 class ARabbitController;
 class UCameraMeshComponent;
 class UCameraShakeBase;
+class UPrimitiveComponent;
 
 DECLARE_DELEGATE(FOnPlayerDiedSignature);
 DECLARE_DELEGATE(FOnPlayerSucceed);

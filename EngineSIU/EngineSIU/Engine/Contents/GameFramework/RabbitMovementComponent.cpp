@@ -120,7 +120,7 @@ void URabbitMovementComponent::PerformMovement(float DeltaTime)
 
         PxControllerCollisionFlags Flags = Controller->move(disp, 0.f, DeltaTime, filters);
         const PxExtendedVec3& Pos = Controller->getPosition();
-        FVector MovedLocation = FVector(Pos.x, Pos.y, Pos.z);
+        FVector MovedLocation = FVector(static_cast<float>(Pos.x), static_cast<float>(Pos.y), static_cast<float>(Pos.z));
 
         bool bPrevIsGrounded = bIsGrounded;
         bIsGrounded = Flags & PxControllerCollisionFlag::eCOLLISION_DOWN;
@@ -175,7 +175,7 @@ void URabbitMovementComponent::SetLocation(const FVector& NewLocation)
         if (bMoved)
         {
             const PxExtendedVec3& Pos = Controller->getPosition();
-            FVector MovedLocation = FVector(Pos.x, Pos.y, Pos.z);
+            FVector MovedLocation = FVector(static_cast<float>(Pos.x), static_cast<float>(Pos.y), static_cast<float>(Pos.z));
 
             Velocity = FVector::ZeroVector;
 

@@ -478,7 +478,8 @@ bool FObjLoader::ConvertToStaticMesh(const FObjInfo& RawData, FStaticMeshRenderD
         for (int32 SubsetIdx = 0; SubsetIdx < OutStaticMesh.MaterialSubsets.Num(); SubsetIdx++)
         {
             const FMaterialSubset& Subset = OutStaticMesh.MaterialSubsets[SubsetIdx];
-            if (Subset.IndexStart <= Idx && Idx < Subset.IndexStart + Subset.IndexCount)
+            if (Subset.IndexStart <= static_cast<uint32>(Idx) &&
+                static_cast<uint32>(Idx) < Subset.IndexStart + Subset.IndexCount)
             {
                 MaterialIndex = Subset.MaterialIndex;
                 break;

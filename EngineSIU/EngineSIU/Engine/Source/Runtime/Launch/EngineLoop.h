@@ -4,9 +4,7 @@
 #include "LevelEditor/SlateAppMessageHandler.h"
 #include "Renderer/Renderer.h"
 #include "UnrealEd/PrimitiveDrawBatch.h"
-#include "Stats/ProfilerStatsManager.h"
 #include "Stats/GPUTimingManager.h"
-#include <RabbitCamera.h>
 
 
 class FSlateAppMessageHandler;
@@ -52,8 +50,6 @@ public:
 
     FGPUTimingManager GPUTimingManager;
     FEngineProfiler EngineProfiler;
-
-
 
 private:
     UImGuiManager* UIManager;

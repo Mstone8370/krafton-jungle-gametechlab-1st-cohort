@@ -69,9 +69,8 @@ void UTextComponent::SetProperties(const TMap<FString, FString>& InProperties)
     TempStr = InProperties.Find(TEXT("QuadSize"));
     if (TempStr)
     {
-        QuadSize = FString::ToFloat(*TempStr);
+        QuadSize = static_cast<int32>(FString::ToFloat(*TempStr));
     }
-    
 }
 
 void UTextComponent::InitializeComponent()

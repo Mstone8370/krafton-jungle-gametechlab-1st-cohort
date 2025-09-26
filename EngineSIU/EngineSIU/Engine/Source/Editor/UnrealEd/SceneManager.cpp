@@ -146,7 +146,7 @@ bool SceneManager::SaveSceneToJsonFile(const std::filesystem::path& FilePath, co
         {
             std::filesystem::create_directory(ParentPath);
         }
-        catch (const std::filesystem::filesystem_error& e)
+        catch (const std::filesystem::filesystem_error&)
         {
             return false;
         }
@@ -174,7 +174,7 @@ bool SceneManager::JsonToSceneData(const FString& InJsonString, FSceneData& OutS
         const json Json = json::parse(InJsonString.GetContainerPrivate()); // JSON 파일 읽기
         OutSceneData = Json;
     }
-    catch (const std::exception& e)
+    catch (const std::exception&)
     {
         //UE_LOG(ELogLevel::Error, "Error parsing JSON: %s", e.what());
         return false;
@@ -189,7 +189,7 @@ bool SceneManager::SceneDataToJson(const FSceneData& InSceneData, FString& OutJs
         const json Json = InSceneData;
         OutJsonString = Json.dump(4); // JSON 데이터를 문자열로 변솬 (4는 들여쓰기 공백 수)
     }
-    catch (const std::exception& e)
+    catch (const std::exception&)
     {
         //UE_LOG(ELogLevel::Error, "Error parsing JSON: %s", e.what());
         return false;

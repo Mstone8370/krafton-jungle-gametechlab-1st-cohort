@@ -9,7 +9,7 @@
 class FMemoryArchive : public FArchive
 {
 protected:
-    int64 Offset;
+    uint64 Offset;
 
     FMemoryArchive()
         : FArchive(), Offset(0)

@@ -186,7 +186,7 @@ bool FDynamicSpriteEmitterData::GetVertexAndIndexData(void* VertexData, void* Fi
             FillVertex->ParticleId = (Particle.Flags & (~0xFE000000)) / 10000.0f;
             FillVertex->Size = FVector2D(GetParticleSizeWithUVFlipInSign(Particle, Size));
             FillVertex->Rotation = Particle.Rotation;
-            FillVertex->SubImageIndex = SubImageIndex;
+            FillVertex->SubImageIndex = static_cast<int32>(SubImageIndex);
             FillVertex->Color = Particle.Color;
 
             TempVert += VertexStride;

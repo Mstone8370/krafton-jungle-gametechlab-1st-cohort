@@ -5,6 +5,7 @@
 class URabbitMovementComponent;
 class RabbitCamera;
 class USkeletalMeshComponent;
+class UPrimitiveComponent;
 
 class ARabbitPawn : public APawn
 {

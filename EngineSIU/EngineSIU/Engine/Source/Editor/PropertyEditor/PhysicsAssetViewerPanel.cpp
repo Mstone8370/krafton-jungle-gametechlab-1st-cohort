@@ -152,8 +152,7 @@ void PhysicsAssetViewerPanel::Render()
         if (SelectedBoneIndex != INDEX_NONE && CopiedRefSkeleton)
         {
             // 1) 본 이름
-            const FString& FullName =
-                CopiedRefSkeleton->RawRefBoneInfo[SelectedBoneIndex].Name.ToString();
+            const FString& FullName = CopiedRefSkeleton->RawRefBoneInfo[SelectedBoneIndex].Name.ToString();
             std::string BoneNameAnsi(GetData(*FullName));
             static char NameBuf[128];
             std::strncpy(NameBuf, BoneNameAnsi.c_str(), sizeof(NameBuf));
@@ -162,8 +161,7 @@ void PhysicsAssetViewerPanel::Render()
             ImGui::Separator();
 
             // 2) 본의 로컬 트랜스폼 (Reference Pose)
-            const FTransform& T =
-                CopiedRefSkeleton->RawRefBonePose[SelectedBoneIndex];
+            const FTransform& T = CopiedRefSkeleton->RawRefBonePose[SelectedBoneIndex];
 
             // 위치
             float pos[3] = { T.GetTranslation().X,
@@ -265,8 +263,8 @@ void PhysicsAssetViewerPanel::OnResize(HWND hWnd)
 {
     RECT ClientRect;
     GetClientRect(hWnd, &ClientRect);
-    Width = ClientRect.right - ClientRect.left;
-    Height = ClientRect.bottom - ClientRect.top;
+    Width = static_cast<float>(ClientRect.right - ClientRect.left);
+    Height = static_cast<float>(ClientRect.bottom - ClientRect.top);
 }
 
 void PhysicsAssetViewerPanel::SetSkeletalMesh(USkeletalMesh* SMesh)

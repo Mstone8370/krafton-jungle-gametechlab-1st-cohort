@@ -16,6 +16,7 @@
 #include "UObject/Casts.h"
 #include "UObject/ObjectFactory.h"
 #include "PhysicsEngine/ConstraintInstance.h"
+#include "Stats/Stats.h"
 
 bool USkeletalMeshComponent::bIsCPUSkinning = false;
 
@@ -115,11 +116,11 @@ void USkeletalMeshComponent::SetProperties(const TMap<FString, FString>& InPrope
         }
         if (InProperties.Contains("LoopStartFrame"))
         {
-            SetLoopStartFrame(FString::ToFloat(InProperties["LoopStartFrame"]));
+            SetLoopStartFrame(static_cast<int32>(FString::ToFloat(InProperties["LoopStartFrame"])));
         }
         if (InProperties.Contains("LoopEndFrame"))
         {
-            SetLoopEndFrame(FString::ToFloat(InProperties["LoopEndFrame"]));
+            SetLoopEndFrame(static_cast<int32>(FString::ToFloat(InProperties["LoopEndFrame"])));
         }
     }
 }
@@ -928,6 +929,7 @@ bool USkeletalMeshComponent::IsReverse() const
     {
         return SingleNodeInstance->IsReverse();
     }
+    return false;
 }
 
 void USkeletalMeshComponent::SetPlayRate(float Rate)

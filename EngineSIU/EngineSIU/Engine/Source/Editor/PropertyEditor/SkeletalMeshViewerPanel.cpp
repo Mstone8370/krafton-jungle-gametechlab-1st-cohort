@@ -128,8 +128,8 @@ void SkeletalMeshViewerPanel::OnResize(HWND hWnd)
 {
     RECT ClientRect;
     GetClientRect(hWnd, &ClientRect);
-    Width = ClientRect.right - ClientRect.left;
-    Height = ClientRect.bottom - ClientRect.top;
+    Width = static_cast<float>(ClientRect.right - ClientRect.left);
+    Height = static_cast<float>(ClientRect.bottom - ClientRect.top);
 }
 
 void SkeletalMeshViewerPanel::SetSkeletalMesh(USkeletalMesh* SMesh)
@@ -145,7 +145,9 @@ int32 SkeletalMeshViewerPanel::GetSelectedBoneIndex() const
 FString SkeletalMeshViewerPanel::GetSelectedBoneName() const
 {
     if (SelectedBoneIndex == INDEX_NONE || !SkeletalMesh)
+    {
         return TEXT("");
+    }
     const auto& RefSkel = SkeletalMesh->GetSkeleton()->GetReferenceSkeleton();
     return RefSkel.RawRefBoneInfo[SelectedBoneIndex].Name.ToString();
 }
@@ -283,7 +285,7 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
     }
     UAnimDataModel* DataModel = AnimSeq->GetDataModel();
     
-    ImVec2 windowSize = ImVec2(Width*0.7, Height*0.3);
+    ImVec2 windowSize = ImVec2(Width * 0.7f, Height * 0.3f);
     ImVec2 windowPos = ImVec2(0.0f, Height - windowSize.y - 30);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     ImGui::SetNextWindowPos(windowPos, ImGuiCond_Always);
@@ -506,13 +508,13 @@ void SkeletalMeshViewerPanel::RenderAnimationSequence(const FReferenceSkeleton& 
                             if (Frame != OriginalFrame)
                             {
                                 float NewTime = static_cast<float>(Frame) / FrameRate;
-                                if(Frame<LoopStart)
+                                if(Frame < LoopStart)
                                 {
-                                    NewTime = LoopStart / FrameRate;
+                                    NewTime = static_cast<float>(LoopStart) / static_cast<float>(FrameRate);
                                 }
                                 else if(Frame + DurationFrame >LoopEnd)
                                 {
-                                    NewTime = (LoopEnd-DurationFrame) / FrameRate;
+                                    NewTime = LoopEnd-DurationFrame / static_cast<float>(FrameRate);
                                 }
                                 AnimSeq->UpdateNotifyEvent(Index, NewTime, Notify.Duration, Notify.TrackIndex, Notify.NotifyName);
                             }

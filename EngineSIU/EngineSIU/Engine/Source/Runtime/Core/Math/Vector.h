@@ -16,6 +16,8 @@ public:
 public:
     FVector2D() : X(0), Y(0) {}
 	FVector2D(float InX, float InY) : X(InX), Y(InY) {}
+    FVector2D(double InX, double InY) : X(static_cast<float>(InX)), Y(static_cast<float>(InY)) {}
+    FVector2D(int32 InX, int32 InY) : X(static_cast<float>(InX)), Y(static_cast<float>(InY)) {}
     FVector2D(float Scalar) : X(Scalar), Y(Scalar) {}
 
     static const FVector2D ZeroVector;

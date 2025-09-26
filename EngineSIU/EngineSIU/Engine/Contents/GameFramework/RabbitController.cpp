@@ -188,7 +188,7 @@ void ARabbitController::SetInputMode(EInputMode NewInputMode)
     case EInputMode::UIOnly:
         FWindowsCursor::SetShowMouseCursor(true);
         FWindowsCursor::LockToWindow(false);
-        FWindowsCursor::SetPosition(MousePinPosition.X, MousePinPosition.Y);
+        FWindowsCursor::SetPosition(static_cast<int32>(MousePinPosition.X), static_cast<int32>(MousePinPosition.Y));
         break;
     case EInputMode::GameOnly:
         FWindowsCursor::SetShowMouseCursor(false);

@@ -27,10 +27,10 @@ void SLevelEditor::Initialize(uint32 InEditorWidth, uint32 InEditorHeight)
     ResizeEditor(EditorWidth, EditorHeight);
     
     VSplitter = new SSplitterV();
-    VSplitter->Initialize(FRect(0.0f, 0.f, EditorWidth, EditorHeight));
+    VSplitter->Initialize(FRect(0.0f, 0.f, static_cast<float>(EditorWidth), static_cast<float>(EditorHeight)));
     
     HSplitter = new SSplitterH();
-    HSplitter->Initialize(FRect(0.f, 0.0f, EditorWidth, EditorHeight));
+    HSplitter->Initialize(FRect(0.f, 0.0f, static_cast<float>(EditorWidth), static_cast<float>(EditorHeight)));
     
     FRect Top = VSplitter->SideLT->GetRect();
     FRect Bottom = VSplitter->SideRB->GetRect();
@@ -177,7 +177,7 @@ void SLevelEditor::ResizeViewports()
     }
     else
     {
-        ActiveViewportClient->GetViewport()->ResizeViewport(FRect(0.0f, 0.f, EditorWidth , EditorHeight ));
+        ActiveViewportClient->GetViewport()->ResizeViewport(FRect(0.0f, 0.f, static_cast<float>(EditorWidth) , static_cast<float>(EditorHeight) ));
     }
 }
 

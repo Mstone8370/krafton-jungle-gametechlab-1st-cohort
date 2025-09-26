@@ -16,6 +16,7 @@
 #include "Renderer/TileLightCullingPass.h"
 
 #include "SoundManager.h"
+#include "Stats/ProfilerStatsManager.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
@@ -195,7 +196,7 @@ void FEngineLoop::Tick()
 
 #ifndef NDEBUG
         //FConsole::GetInstance().Draw();
-        //EngineProfiler.Render(GraphicDevice.DeviceContext, GraphicDevice.ScreenWidth, GraphicDevice.ScreenHeight);
+        EngineProfiler.Render(GraphicDevice.DeviceContext, GraphicDevice.ScreenWidth, GraphicDevice.ScreenHeight);
 #endif
         
         UIManager->EndFrame();

@@ -7,6 +7,8 @@
 #include "World/World.h"
 #include <thread>
 
+#include "Stats/Stats.h"
+
 
 void GameObject::SetRigidBodyType(ERigidBodyType RigidBodyType) const
 {
@@ -169,14 +171,16 @@ bool FPhysicsManager::ConnectPVD()
 {
     // PVD 생성
     Pvd = PxCreatePvd(*Foundation);
-    if (!Pvd) {
+    if (!Pvd)
+    {
         printf("PVD 생성 실패\n");
         return false;
     }
 
     // 네트워크 전송 생성 (TCP)
     Transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
-    if (!Transport) {
+    if (!Transport)
+    {
         printf("PVD Transport 생성 실패\n");
         return false;
     }

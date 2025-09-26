@@ -145,7 +145,7 @@ void UAssetManager::GetAssetKeys(EAssetType AssetType, TArray<FName>& OutKeys) c
     }
 }
 
-const FName& UAssetManager::GetAssetKeyByObject(EAssetType AssetType, const UObject* AssetObject) const
+FName UAssetManager::GetAssetKeyByObject(EAssetType AssetType, const UObject* AssetObject) const
 {
     if (AssetObject)
     {
@@ -197,7 +197,7 @@ bool UAssetManager::SavePhysicsAsset(const FString& FilePath, UPhysicsAsset* Phy
         {
             std::filesystem::create_directory(ParentPath);
         }
-        catch (const std::filesystem::filesystem_error& e)
+        catch (const std::filesystem::filesystem_error&)
         {
             return false;
         }
@@ -245,7 +245,7 @@ bool UAssetManager::SaveParticleSystemAsset(const FString& FilePath, UParticleSy
         {
             std::filesystem::create_directory(ParentPath);
         }
-        catch (const std::filesystem::filesystem_error& e)
+        catch (const std::filesystem::filesystem_error&)
         {
             return false;
         }

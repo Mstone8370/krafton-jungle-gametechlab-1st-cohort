@@ -1,6 +1,7 @@
 ﻿#include "CameraRenderPass.h"
 
 #include "RendererHelpers.h"
+#include "UnrealClient.h"
 #include "D3D11RHI/DXDShaderManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "Engine/Engine.h"

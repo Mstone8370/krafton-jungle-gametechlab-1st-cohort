@@ -9,6 +9,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "DeathVolume.h"
+#include "RabbitCamera.h"
 #include "SuccessVolume.h"
 #include "Objects/HitCameraShake.h"
 
