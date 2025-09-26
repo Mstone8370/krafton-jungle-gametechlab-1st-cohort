@@ -504,13 +504,13 @@ bool FObjLoader::ConvertToStaticMesh(const FObjInfo& RawData, FStaticMeshRenderD
 
             StaticMeshVertex.R = 0.7f; StaticMeshVertex.G = 0.7f; StaticMeshVertex.B = 0.7f; StaticMeshVertex.A = 1.0f; // 기본 색상
 
-            if (UVIndex != UINT32_MAX && UVIndex < RawData.UVs.Num())
+            if (UVIndex != UINT32_MAX && UVIndex < static_cast<uint32>(RawData.UVs.Num()))
             {
                 StaticMeshVertex.U = RawData.UVs[UVIndex].X;
                 StaticMeshVertex.V = RawData.UVs[UVIndex].Y;
             }
 
-            if (NormalIndex != UINT32_MAX && NormalIndex < RawData.Normals.Num())
+            if (NormalIndex != UINT32_MAX && NormalIndex < static_cast<uint32>(RawData.Normals.Num()))
             {
                 StaticMeshVertex.NormalX = RawData.Normals[NormalIndex].X;
                 StaticMeshVertex.NormalY = RawData.Normals[NormalIndex].Y;

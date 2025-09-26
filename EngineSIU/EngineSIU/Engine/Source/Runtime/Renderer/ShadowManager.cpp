@@ -232,7 +232,10 @@ void FShadowManager::BindResourcesForSampling(
         {
             CascadeData.ViewProj[i] = CascadesViewProjMatrices[i];
             CascadeData.InvViewProj[i] = FMatrix::Inverse(CascadeData.ViewProj[i]);
-            if (i >= CascadesInvProjMatrices.Num()) { continue; }
+            if (i >= static_cast<uint32>(CascadesInvProjMatrices.Num()))
+            {
+                continue;
+            }
             CascadeData.InvProj[i] = CascadesInvProjMatrices[i];
         }
 

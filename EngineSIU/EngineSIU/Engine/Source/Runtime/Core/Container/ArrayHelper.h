@@ -15,8 +15,9 @@ struct FArrayHelper
         using SizeType = typename TArray<T, AllocatorType>::SizeType;
         constexpr bool bIsUObject = std::is_base_of_v<UObject, PointerToType>;
     
-        uint32 ArraySize = static_cast<uint32>(Array.Num());
-        Ar << ArraySize;
+        const SizeType ArraySize = Array.Num();
+        const uint32 ArraySizeAsUInt32 = static_cast<uint32>(ArraySize);
+        Ar << ArraySizeAsUInt32;
 
         if (Ar.IsLoading())
         {

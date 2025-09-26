@@ -119,7 +119,7 @@ void ULuaScriptComponent::InitializeLuaState()
         const std::wstring FilePath = ScriptPath.ToWideString();
         LastWriteTime = std::filesystem::last_write_time(FilePath);
     }
-    catch (const sol::error& err) {
+    catch (const sol::error&) {
         //UE_LOG(ELogLevel::Error, TEXT("Lua Initialization error: %s"), err.what());
     }
 
@@ -169,7 +169,7 @@ bool ULuaScriptComponent::CheckFileModified()
             return true;
         }
     }
-    catch (const std::exception& e) {
+    catch (const std::exception&) {
         //UE_LOG(ELogLevel::Error, TEXT("Failed to check lua script file"));
     }
     return false;
@@ -204,7 +204,7 @@ void ULuaScriptComponent::TickComponent(float DeltaTime)
             ReloadScript();
             //UE_LOG(ELogLevel::Display, TEXT("Lua script reloaded"));
         }
-        catch (const sol::error& e) {
+        catch (const sol::error&) {
             //UE_LOG(ELogLevel::Error, TEXT("Failed to reload lua script"));
         }
     }
