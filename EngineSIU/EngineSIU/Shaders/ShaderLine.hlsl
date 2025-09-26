@@ -333,7 +333,7 @@ float4 mainPS(PS_INPUT input) : SV_Target
     {
         float Dist = length(input.WorldPosition.xyz - ViewWorldLocation);
 
-        float MaxDist = 400 * 1.2f;
+        float MaxDist = 4000 * 1.2f;
         float MinDist = MaxDist * 0.3f;
 
          // Fade out grid

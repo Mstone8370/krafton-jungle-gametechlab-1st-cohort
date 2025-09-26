@@ -42,7 +42,6 @@ struct PS_Input
 float4 main(PS_Input Input) : SV_TARGET
 {
     float4 Scene = SceneTexture.Sample(CompositingSampler, Input.UV);
-    Scene = pow(Scene, GammaValue);
     float4 Translucent = TranslucentTexture.Sample(CompositingSampler, Input.UV);
     float4 PostProcess = PP_PostProcessTexture.Sample(CompositingSampler, Input.UV);
     float4 Editor = EditorTexture.Sample(CompositingSampler, Input.UV);
@@ -61,6 +60,7 @@ float4 main(PS_Input Input) : SV_TARGET
     else
     {
         FinalColor = lerp(FinalColor, PostProcess, PostProcess.a);
+        FinalColor = pow(FinalColor, GammaValue);
         FinalColor = lerp(FinalColor, Editor, Editor.a);
         // TODO: 반투명 물체는 포스트 프로세싱을 어떻게 처리해야하는지 고민해야 함.
         FinalColor = lerp(FinalColor, Translucent, Translucent.a);

@@ -277,7 +277,7 @@ bool USkeletalMeshComponent::ShouldTickAnimation() const
 {
     if (GEngine->GetWorldContextFromWorld(GetWorld())->WorldType == EWorldType::Editor)
     {
-        return false;
+        // return false; // 에디터에서도 애니메이션이 재생되게 일단 주석처리.
     }
     return GetAnimInstance() && SkeletalMeshAsset && SkeletalMeshAsset->GetSkeleton();
 }

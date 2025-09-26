@@ -92,11 +92,8 @@ void UWorld::SpawnEssentialActors()
 {
     if (!GameMode && this->WorldType == EWorldType::PIE)
     {
-        //GameMode = this->SpawnActor<AGameMode>();
-        GameMode = this->SpawnActor<ARabbitGameMode>();
+        GameMode = this->SpawnActor<AGameMode>();
         GameMode->SetActorLabel(TEXT("OBJ_GAMEMODE"));
-
-        //CreateChaserRabbitSpawner();
     }
 }
 

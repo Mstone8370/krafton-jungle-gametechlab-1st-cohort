@@ -50,8 +50,7 @@ void UEditorEngine::Init()
 
     EditorPlayer = FObjectFactory::ConstructObject<AEditorPlayer>(this);
 
-    LoadLevel("Engine/Contents/Resources/MapDesignLevel.scene");
-    ActiveWorld->GetGridMap()->LoadFromBinaryFile("Engine/Contents/Resources/MapDesignLevel.scene.mapgrid");
+    LoadLevel("Saved/AutoSaves.scene");
 }
 
 void UEditorEngine::Release()

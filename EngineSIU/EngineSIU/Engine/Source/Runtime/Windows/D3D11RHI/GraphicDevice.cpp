@@ -309,7 +309,7 @@ void FGraphicsDevice::Release()
 
 void FGraphicsDevice::SwapBuffer() const
 {
-    SwapChain->Present(0, 0);
+    SwapChain->Present(1, 0);
 }
 
 void FGraphicsDevice::Resize(HWND hWindow)

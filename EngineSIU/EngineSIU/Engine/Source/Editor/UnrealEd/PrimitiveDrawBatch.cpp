@@ -36,7 +36,7 @@ UPrimitiveDrawBatch::~UPrimitiveDrawBatch()
 void UPrimitiveDrawBatch::Initialize(FGraphicsDevice* graphics)
 {
     Graphics = graphics;
-    InitializeGrid(5, 5000);
+    InitializeGrid(100, 5000);
     CreatePrimitiveBuffers();
 }
 

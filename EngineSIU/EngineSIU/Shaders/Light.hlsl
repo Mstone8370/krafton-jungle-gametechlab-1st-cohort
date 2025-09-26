@@ -399,7 +399,7 @@ float DisneyDiffuse(float3 N, float3 L, float3 V, float Roughness)
 
     float  Fd90 = 0.5 + 2.0 * Roughness * LdotH2; // grazing boost
 
-    float DiffuseFresnelL = SchlickWeight(LdotH);
+    float DiffuseFresnelL = SchlickWeight(NdotL);
     float DiffuseFresnelV = SchlickWeight(NdotV);
 
     float  Fd = (1.0 + (Fd90 - 1.0) * DiffuseFresnelL) * (1.0 + (Fd90 - 1.0) * DiffuseFresnelV);

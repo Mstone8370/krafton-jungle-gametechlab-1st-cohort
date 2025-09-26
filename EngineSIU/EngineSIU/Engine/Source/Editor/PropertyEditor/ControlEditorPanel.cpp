@@ -55,6 +55,7 @@ ControlEditorPanel::ControlEditorPanel()
         EWorldTypeBitFlag::Editor
         | EWorldTypeBitFlag::SkeletalViewer
         | EWorldTypeBitFlag::PhysicsAssetViewer
+        | EWorldTypeBitFlag::PIE
     );
 }
 
