@@ -599,7 +599,7 @@ bool FEditorViewportClient::IsPerspective() const
     return (GetViewportType() == LVT_Perspective);
 }
 
-FVector FEditorViewportClient::GetCameraLocation() const
+const FVector& FEditorViewportClient::GetCameraLocation() const
 {
     if (GEngine && GEngine->ActiveWorld->WorldType == EWorldType::PIE)
     {

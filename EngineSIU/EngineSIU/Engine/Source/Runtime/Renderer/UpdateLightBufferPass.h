@@ -6,6 +6,7 @@ class FDXDShaderManager;
 class UWorld;
 class FEditorViewportClient;
 
+class ULightComponentBase;
 class UPointLightComponent;
 class USpotLightComponent;
 class UDirectionalLightComponent;
@@ -29,7 +30,9 @@ protected:
     virtual void CreateResource() override;
     
 private:
-    void UpdateLightBuffer() const;
+    void UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport);
+
+    float CalculateLightImportance(const ULightComponentBase* Light, const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     
     TArray<UPointLightComponent*> PointLightComps;
     TArray<USpotLightComponent*> SpotLightComps;
@@ -39,5 +42,17 @@ private:
 
     TArray<FLightData> LightData;
 
-    const uint32 MAX_LIGHT = 1024; // 한 씬에 허용하는 최대 조명 개수
+    const int32 MAX_LIGHT = 1024; // 한 씬에 허용하는 최대 조명 개수
+
+    struct FLightCandidate
+    {
+        float Importance;
+        int32 OriginalIndex;
+        int32 Type;
+
+        bool operator<(const FLightCandidate& Other) const
+        {
+            return Importance > Other.Importance;
+        }
+    };
 };

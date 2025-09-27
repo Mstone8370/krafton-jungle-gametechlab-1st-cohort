@@ -119,9 +119,9 @@ struct FSceneLightConstants
     FDirectionalLightInfo DirectionalLightInfo;
     FAmbientLightInfo AmbientLightInfo;
     
-    int32 DirectionalLightsCount;
-    int32 AmbientLightsCount;
+    int32 DirectionalLightsCount = 0;
+    int32 AmbientLightsCount = 0;
     
-    int32 TotalActiveLightCount;
-    int32 Padding;
+    int32 TotalActiveLightCount = 0;
+    int32 Padding = 0;
 };

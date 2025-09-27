@@ -23,6 +23,10 @@ public:
 
     virtual void UpdateViewMatrix();
     virtual void UpdateProjectionMatrix();
+
+    virtual float GetRadius() const { return 0.f; }
+    virtual float GetIntensity() const { return 0.f; }
+    virtual bool GetCastShadows() const { return false; }
     
     FMatrix GetViewMatrix(int Index = 0) const
     {

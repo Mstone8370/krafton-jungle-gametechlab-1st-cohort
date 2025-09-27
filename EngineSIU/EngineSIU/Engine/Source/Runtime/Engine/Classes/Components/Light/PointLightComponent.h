@@ -19,16 +19,16 @@ public:
     FPointLightInfo& GetPointLightInfo();
     void SetPointLightInfo(const FPointLightInfo& InPointLightInfo);
 
-    float GetRadius() const;
+    virtual float GetRadius() const override;
     void SetRadius(float InRadius);
 
-    bool GetCastShadows() const { return PointLightInfo.CastShadows; }
+    virtual bool GetCastShadows() const override { return PointLightInfo.CastShadows; }
     void SetCastShadows(bool InCastShadows) { PointLightInfo.CastShadows = InCastShadows; }
 
     FLinearColor GetLightColor() const;
     void SetLightColor(const FLinearColor& InColor);
-    
-    float GetIntensity() const;
+
+    virtual float GetIntensity() const override;
     void SetIntensity(float InIntensity);
 
     int GetType() const;

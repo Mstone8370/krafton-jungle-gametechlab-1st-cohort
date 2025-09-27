@@ -339,23 +339,22 @@ void FRenderer::RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Vie
             DepthPrePass->Render(Viewport);
         }
 
+        if (UpdateLightBufferPass)
+        {
+            QUICK_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_GPU, *GPUTimingManager)
+            UpdateLightBufferPass->Render(Viewport);
+        }
+
         // Added Compute Shader Pass
         if (TileLightCullingPass)
         {
-            {
-                QUICK_SCOPE_CYCLE_COUNTER(TileLightCulling_CPU)
-                QUICK_GPU_SCOPE_CYCLE_COUNTER(TileLightCulling_GPU, *GPUTimingManager)
-                TileLightCullingPass->Render(Viewport);
-            }
-
-            {
-                QUICK_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_CPU)
-                QUICK_GPU_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_GPU, *GPUTimingManager)
-                UpdateLightBufferPass->Render(Viewport);
-            }
+            QUICK_SCOPE_CYCLE_COUNTER(TileLightCulling_CPU)
+            QUICK_GPU_SCOPE_CYCLE_COUNTER(TileLightCulling_GPU, *GPUTimingManager)
+            TileLightCullingPass->Render(Viewport);
         }
 
-        if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
+        if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit && false)
         {
             // ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
             {
