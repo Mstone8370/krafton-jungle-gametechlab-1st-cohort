@@ -2,7 +2,7 @@
 
 #include "ShadowManager.h"
 #include "BaseGizmos/GizmoBaseComponent.h"
-#include "Components/Light/LightComponent.h"
+#include "Components/Light/LightComponentBase.h"
 #include "Components/Light/PointLightComponent.h"
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"

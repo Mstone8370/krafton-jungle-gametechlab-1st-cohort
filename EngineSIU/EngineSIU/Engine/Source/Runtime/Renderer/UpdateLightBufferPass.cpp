@@ -6,7 +6,7 @@
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
 
-#include "Components/Light/LightComponent.h"
+#include "Components/Light/LightComponentBase.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
@@ -31,13 +31,13 @@ void FUpdateLightBufferPass::PrepareRenderArr()
     {
         if (Iter->GetWorld() == GEngine->ActiveWorld)
         {
-            if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Iter))
-            {
-                PointLightComps.Add(PointLight);
-            }
-            else if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Iter))
+            if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(Iter))
             {
                 SpotLightComps.Add(SpotLight);
+            }
+            else if (UPointLightComponent* PointLight = Cast<UPointLightComponent>(Iter))
+            {
+                PointLightComps.Add(PointLight);
             }
             else if (UDirectionalLightComponent* DirectionalLight = Cast<UDirectionalLightComponent>(Iter))
             {

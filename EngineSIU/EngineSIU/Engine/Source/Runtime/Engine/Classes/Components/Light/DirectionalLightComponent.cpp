@@ -13,6 +13,8 @@ UDirectionalLightComponent::UDirectionalLightComponent()
 
     DirectionalLightInfo.LightColor = FLinearColor(1.0f, 1.0f, 1.0f, 1.0f);
     DirectionalLightInfo.CastShadows = false;
+
+    ViewMatrices.SetNum(1);
 }
 
 UObject* UDirectionalLightComponent::Duplicate(UObject* InOuter)

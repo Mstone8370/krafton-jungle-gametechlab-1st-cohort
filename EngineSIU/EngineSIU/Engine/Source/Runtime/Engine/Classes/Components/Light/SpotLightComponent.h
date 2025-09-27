@@ -1,9 +1,9 @@
 #pragma once
-#include "LightComponent.h"
+#include "PointLightComponent.h"
 
-class USpotLightComponent :public ULightComponentBase
+class USpotLightComponent :public UPointLightComponent
 {
-    DECLARE_CLASS(USpotLightComponent, ULightComponentBase)
+    DECLARE_CLASS(USpotLightComponent, UPointLightComponent)
 
 public:
     USpotLightComponent();

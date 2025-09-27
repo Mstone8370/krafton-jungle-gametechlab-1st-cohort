@@ -216,6 +216,8 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClCompile Include="Engine\Contents\Objects\HitCameraShake.cpp" />
     <ClCompile Include="Engine\Contents\Objects\IdleCameraShake.cpp" />
     <ClCompile Include="Engine\Contents\Renderer\CameraRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LocalLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\GameFramework\AIController.cpp" />
     <ClCompile Include="Engine\Contents\Actors\GridMapActor.cpp" />
     <ClCompile Include="Engine\Contents\AnimInstance\MyAnimInstance.cpp" />
@@ -325,7 +327,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\AmbientLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\DirectionalLightComponent.cpp" />
-    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponentBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\PointLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\SpotLightComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Material\Material.cpp" />
@@ -559,6 +561,8 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClInclude Include="Engine\Contents\Objects\IdleCameraShake.h" />
     <ClInclude Include="Engine\Contents\Renderer\CameraRenderPass.h" />
     <ClInclude Include="Engine\Contents\Runtime\Core\StaticMeshTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LocalLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\AIController.h" />
     <ClInclude Include="Engine\Contents\Actors\GridMapActor.h" />
     <ClInclude Include="Engine\Contents\AnimInstance\MyAnimInstance.h" />
@@ -707,7 +711,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\InputComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\AmbientLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\DirectionalLightComponent.h" />
-    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponentBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\PointLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\SpotLightComponent.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Material\Material.h" />

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "LightComponent.h"
+#include "LightComponentBase.h"
 
 class UAmbientLightComponent : public ULightComponentBase
 {

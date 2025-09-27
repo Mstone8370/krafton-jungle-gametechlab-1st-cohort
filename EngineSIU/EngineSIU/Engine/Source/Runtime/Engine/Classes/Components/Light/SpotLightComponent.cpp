@@ -20,6 +20,8 @@ USpotLightComponent::USpotLightComponent()
     SpotLightInfo.Attenuation = 20.0f;
     SpotLightInfo.ShadowBias = 0.005f;
     SpotLightInfo.CastShadows = 1;
+
+    ViewMatrices.SetNum(1);
 }
 
 UObject* USpotLightComponent::Duplicate(UObject* InOuter)

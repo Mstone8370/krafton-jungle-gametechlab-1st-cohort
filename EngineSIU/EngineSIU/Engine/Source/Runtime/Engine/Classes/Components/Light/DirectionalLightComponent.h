@@ -2,9 +2,9 @@
 #include "LightComponent.h"
 #include "UObject/ObjectMacros.h"
 
-class UDirectionalLightComponent : public ULightComponentBase
+class UDirectionalLightComponent : public ULightComponent
 {
-    DECLARE_CLASS(UDirectionalLightComponent, ULightComponentBase)
+    DECLARE_CLASS(UDirectionalLightComponent, ULightComponent)
 
 public:
     UDirectionalLightComponent();
@@ -34,9 +34,23 @@ public:
     void UpdateProjectionMatrix() override;
     float GetShadowFrustumWidth() const;
 
+    FMatrix GetViewMatrix(int Index = 0) const
+    {
+        return ViewMatrices[Index];
+    }
+    FMatrix GetProjectionMatrix() const
+    {
+        return ProjectionMatrix;
+    }
+    FMatrix GetViewProjectionMatrix(int Index = 0) const
+    {
+        return ViewMatrices[Index] * ProjectionMatrix;
+    }
+
 private:
     FDirectionalLightInfo DirectionalLightInfo;
 
-
+    TArray<FMatrix> ViewMatrices;
+    FMatrix ProjectionMatrix;
 };
 

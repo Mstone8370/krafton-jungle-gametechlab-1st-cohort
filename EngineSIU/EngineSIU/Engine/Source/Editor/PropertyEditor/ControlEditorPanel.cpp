@@ -6,7 +6,7 @@
 #include "Actors/LightActor.h"
 #include "Actors/FireballActor.h"
 
-#include "Components/Light/LightComponent.h"
+#include "Components/Light/LightComponentBase.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "Components/SphereComp.h"

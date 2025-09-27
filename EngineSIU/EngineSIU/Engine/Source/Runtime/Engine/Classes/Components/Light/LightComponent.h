@@ -1,65 +1,14 @@
-#pragma once
-#include "UnrealClient.h"
-#include "Components/SceneComponent.h"
+﻿#pragma once
+#include "LightComponentBase.h"
 
-#define NUM_FACES 6
 
-class ULightComponentBase : public USceneComponent
+class ULightComponent : public ULightComponentBase
 {
-    DECLARE_CLASS(ULightComponentBase, USceneComponent)
+    DECLARE_CLASS(ULightComponent, ULightComponentBase)
 
 public:
-    ULightComponentBase();
-    virtual ~ULightComponentBase() override = default;
-    
-    virtual void Initialize();
-    virtual UObject* Duplicate(UObject* InOuter) override;
-    
-    virtual void GetProperties(TMap<FString, FString>& OutProperties) const override;
-    virtual void SetProperties(const TMap<FString, FString>& InProperties) override;
+    ULightComponent() = default;
+    virtual ~ULightComponent() override = default;
 
-    virtual void TickComponent(float DeltaTime) override;
-    virtual int CheckRayIntersection(const FVector& InRayOrigin, const FVector& InRayDirection, float& OutHitDistance, FVector& OutHitNormal) const override;
-
-    virtual void UpdateViewMatrix();
-    virtual void UpdateProjectionMatrix();
-
-    virtual float GetRadius() const { return 0.f; }
-    virtual float GetIntensity() const { return 0.f; }
-    virtual bool GetCastShadows() const { return false; }
-    
-    FMatrix GetViewMatrix(int Index = 0) const
-    {
-        return ViewMatrices[Index];
-    }
-    FMatrix GetProjectionMatrix() const
-    {
-        return ProjectionMatrix;
-    }
-    FMatrix GetViewProjectionMatrix(int Index = 0) const
-    {
-        return ViewMatrices[Index] * ProjectionMatrix;
-    }
-    
-protected:
-    // PointLight: 6개의 ViewMatrix를 가집니다
-    TArray<FMatrix> ViewMatrices;
-    FMatrix ProjectionMatrix;
-    
-    FBoundingBox AABB;
-
-public:
-    FBoundingBox GetBoundingBox() const {return AABB;}
-
-public:
-    // bool HasShadowMap() const { return ShadowMaps.Num() != 0; }
-    //virtual TArray<FDepthStencilRHI> GetShadowMap();
-    void SetShadowMapSize(const uint32 InWidth, const uint32 InHeight);
-    uint32 GetShadowMapWidth() const { return ShadowMapWidth; }
-    uint32 GetShadowMapHeight() const { return ShadowMapHeight; }
-
-protected:
-    uint32 ShadowMapWidth = 4096;
-    uint32 ShadowMapHeight = 4096;
-    bool bDirtyFlag = false;
+    UPROPERTY(float, AttenuationRadius, = 1000.f)
 };

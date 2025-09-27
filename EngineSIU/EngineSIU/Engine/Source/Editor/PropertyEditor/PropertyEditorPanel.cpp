@@ -12,7 +12,7 @@
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/Light/LightComponent.h"
+#include "Components/Light/LightComponentBase.h"
 #include "Components/Light/PointLightComponent.h"
 #include "Components/Light/SpotLightComponent.h"
 #include "Components/Light/DirectionalLightComponent.h"
@@ -141,14 +141,16 @@ void PropertyEditorPanel::Render()
     {
         RenderForDirectionalLightComponent(LightComponent);
     }
-    if (UPointLightComponent* LightComponent = GetTargetComponent<UPointLightComponent>(SelectedActor, SelectedComponent))
-    {
-        RenderForPointLightComponent(LightComponent);
-    }
+    
     if (USpotLightComponent* LightComponent = GetTargetComponent<USpotLightComponent>(SelectedActor, SelectedComponent))
     {
         RenderForSpotLightComponent(LightComponent);
     }
+    else if (UPointLightComponent* PointLightComponent = GetTargetComponent<UPointLightComponent>(SelectedActor, SelectedComponent))
+    {
+        RenderForPointLightComponent(PointLightComponent);
+    }
+    
     if (UProjectileMovementComponent* ProjectileComp = GetTargetComponent<UProjectileMovementComponent>(SelectedActor, SelectedComponent))
     {
         RenderForProjectileMovementComponent(ProjectileComp);

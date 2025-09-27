@@ -5,7 +5,7 @@
 #include "Actors/PointLightActor.h"
 #include "Actors/SpotLightActor.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "Components/Light/LightComponent.h"
+#include "Components/Light/LightComponentBase.h"
 #include "Engine/Engine.h"
 #include "Renderer/UpdateLightBufferPass.h"
 #include "Stats/GPUTimingManager.h"
