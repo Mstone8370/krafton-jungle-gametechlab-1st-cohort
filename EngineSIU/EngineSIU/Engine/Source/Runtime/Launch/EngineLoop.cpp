@@ -296,10 +296,12 @@ LRESULT CALLBACK FEngineLoop::AppWndProc(HWND hWnd, uint32 Msg, WPARAM wParam, L
                 GEngineLoop.GetClientSize(ClientWidth, ClientHeight);
             
                 LevelEditor->ResizeEditor(ClientWidth, ClientHeight);
+                /*
                 FEngineLoop::Renderer.TileLightCullingPass->ResizeViewBuffers(
                   static_cast<uint32>(LevelEditor->GetActiveViewportClient()->GetD3DViewport().Width),
                     static_cast<uint32>(LevelEditor->GetActiveViewportClient()->GetD3DViewport().Height)
                 );
+                */
             }
         }
         GEngineLoop.UpdateUI();

@@ -351,15 +351,6 @@ void FRenderer::RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Vie
                 TileLightCullingPass->Render(Viewport);
             }
 
-            // 이후 패스에서 사용할 수 있도록 리소스 생성
-            // @todo UpdateLightBuffer에서 병목 발생 -> 필요한 라이트에 대하여만 업데이트 필요, Tiled Culling으로 GPU->CPU 전송은 주객전도
-            UpdateLightBufferPass->SetLightData(
-                TileLightCullingPass->GetPointLights(),
-                TileLightCullingPass->GetSpotLights(),
-                TileLightCullingPass->GetPerTilePointLightIndexMaskBufferSRV(),
-                TileLightCullingPass->GetPerTileSpotLightIndexMaskBufferSRV()
-            );
-
             {
                 QUICK_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_CPU)
                 QUICK_GPU_SCOPE_CYCLE_COUNTER(UpdateLightBufferPass_GPU, *GPUTimingManager)
@@ -369,7 +360,7 @@ void FRenderer::RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Vie
 
         if (Viewport->GetViewMode() != EViewModeIndex::VMI_Unlit)
         {
-            ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
+            // ShadowRenderPass->SetLightData(TileLightCullingPass->GetPointLights(), TileLightCullingPass->GetSpotLights());
             {
                 QUICK_SCOPE_CYCLE_COUNTER(ShadowPass_CPU)
                 QUICK_GPU_SCOPE_CYCLE_COUNTER(ShadowPass_GPU, *GPUTimingManager)
