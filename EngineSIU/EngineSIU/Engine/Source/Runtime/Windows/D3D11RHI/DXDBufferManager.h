@@ -328,6 +328,7 @@ HRESULT FDXDBufferManager::CreateStructuredBufferGeneric(const FString& KeyName,
 
     ID3D11Buffer* Buffer = nullptr;
     HRESULT Result = DXDevice->CreateBuffer(&Desc, Data ? &InitData : nullptr, &Buffer);
+    assert(Buffer);
     if (FAILED(Result))
     {
         //UE_LOG(ELogLevel::Error, TEXT("Error Create Structured Buffer!"));
@@ -342,6 +343,7 @@ HRESULT FDXDBufferManager::CreateStructuredBufferGeneric(const FString& KeyName,
 
     ID3D11ShaderResourceView* SRV = nullptr;
     Result = DXDevice->CreateShaderResourceView(Buffer, nullptr, &SRV);
+    assert(SRV);
     if (FAILED(Result))
     {
         //UE_LOG(ELogLevel::Error, TEXT("Error Create Structured Buffer SRV!"));

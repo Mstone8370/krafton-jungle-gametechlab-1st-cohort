@@ -138,8 +138,8 @@ void FRenderer::CreateConstantBuffers()
     UINT FogConstantBufferSize = sizeof(FFogConstants);
     BufferManager->CreateBufferGeneric<FFogConstants>("FFogConstants", nullptr, FogConstantBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    UINT LightInfoBufferSize = sizeof(FLightInfoBuffer);
-    BufferManager->CreateBufferGeneric<FLightInfoBuffer>("FLightInfoBuffer", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    UINT LightInfoBufferSize = sizeof(FSceneLightConstants);
+    BufferManager->CreateBufferGeneric<FSceneLightConstants>("FLightInfoBuffer", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
     UINT CPUSkinningBufferSize = sizeof(FCPUSkinningConstants);
     BufferManager->CreateBufferGeneric<FCPUSkinningConstants>("FCPUSkinningConstants", nullptr, CPUSkinningBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
@@ -306,9 +306,6 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
      *   3. RTV -> SRV 전환 타이밍이 정확히 지켜짐
      */
     
-    const uint64 ShowFlag = Viewport->GetShowFlag();
-    const EViewModeIndex ViewMode = Viewport->GetViewMode();
-
     QUICK_SCOPE_CYCLE_COUNTER(Renderer_Render_CPU)
     QUICK_GPU_SCOPE_CYCLE_COUNTER(Renderer_Render_GPU, *GPUTimingManager)
 

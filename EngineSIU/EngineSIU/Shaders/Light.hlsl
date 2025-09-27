@@ -18,6 +18,31 @@
 
 #define MAX_CASCADE_NUM 5
 
+// for SoptLight and PointLight
+struct FLightData
+{
+    float4 LightColor;
+
+    float3 Location;
+    float Radius;
+
+    float3 Direction;
+    float Intensity;
+
+    float3 UpVector;
+    float ShadowBias;
+
+    float2 SpotRadians; // x: Outer, y: Inner
+    /*
+     * 0: SpotLight (no shadow),   1: PointLight (no shadow),
+     * 2: SpotLight (cast shadow), 3: PointLight (cast shadow)
+     */
+    uint Type; 
+    uint ShadowMapIndex;
+
+    matrix ProjectionMatrix;
+};
+
 struct FAmbientLightInfo
 {
     float4 AmbientColor;
@@ -94,15 +119,14 @@ struct FSpotLightInfo
 
 cbuffer FLightInfoBuffer : register(b0)
 {
-    FAmbientLightInfo Ambient[MAX_AMBIENT_LIGHT];
-    FDirectionalLightInfo Directional[MAX_DIRECTIONAL_LIGHT];
-    FPointLightInfo PointLights[MAX_POINT_LIGHT]; //삭제 예정
-    FSpotLightInfo SpotLights[MAX_SPOT_LIGHT]; // 삭제 예정
+    FDirectionalLightInfo DirectionalLightInfo[MAX_DIRECTIONAL_LIGHT];
+    FAmbientLightInfo AmbientLightInfo[MAX_AMBIENT_LIGHT];
     
     int DirectionalLightsCount;
-    int PointLightsCount;
-    int SpotLightsCount;
     int AmbientLightsCount;
+    
+    int TotalActiveLightCount;
+    int LightInfoBufferPadding;
 };
 
 cbuffer ShadowFlagConstants : register(b5)
@@ -637,7 +661,7 @@ FLightOutput DirectionalLight(int Index, float3 WorldPosition, float3 WorldNorma
 {
     FLightOutput Output = (FLightOutput)0;
     
-    FDirectionalLightInfo LightInfo = Directional[Index];
+    FDirectionalLightInfo LightInfo = DirectionalLightInfo[Index];
     
     float4 posCam = mul(float4(WorldPosition, 1), ViewMatrix);
     float depthCam = posCam.z / posCam.w;
@@ -805,7 +829,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 
     if (AmbientLightsCount > 0)
     {
-        IBL_DiffuseColor = Ambient[0].AmbientColor.rgb;
+        IBL_DiffuseColor = AmbientLightInfo[0].AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
 #else
@@ -813,7 +837,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     if (AmbientLightsCount > 0)
     {
-        AmbientLightColor = Ambient[0].AmbientColor.rgb;
+        AmbientLightColor = AmbientLightInfo[0].AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += DiffuseColor * AmbientLightColor;
 #endif
@@ -918,7 +942,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 
     if (AmbientLightsCount > 0)
     {
-        IBL_DiffuseColor = Ambient[0].AmbientColor.rgb;
+        IBL_DiffuseColor = AmbientLightInfo[0].AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
 #else
@@ -926,7 +950,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     if (AmbientLightsCount > 0)
     {
-        AmbientLightColor = Ambient[0].AmbientColor.rgb;
+        AmbientLightColor = AmbientLightInfo[0].AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += DiffuseColor * AmbientLightColor;
 #endif

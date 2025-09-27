@@ -2,6 +2,32 @@
 #include "Math/Vector.h"
 #include "Math/Vector4.h"
 #include "Math/Matrix.h"
+
+// for SoptLight and PointLight
+struct FLightData
+{
+    FLinearColor LightColor = FLinearColor::White;
+
+    FVector Location = FVector::ZeroVector;
+    float Radius = 1000.f; // cm
+
+    FVector Direction = FVector::ForwardVector;
+    float Intensity = 100000.f;
+
+    FVector UpVector = FVector::UpVector;
+    float ShadowBias = 0.005f;
+
+    FVector2D SpotRadians = FVector2D(0.2618f, 0.5236f); // x: Outer, y: Inner
+    /*
+     * 0: SpotLight (no shadow),   1: PointLight (no shadow),
+     * 2: SpotLight (cast shadow), 3: PointLight (cast shadow)
+     */
+    uint32 Type = 0; 
+    int32 ShadowMapIndex = -1;
+
+    FMatrix ProjectionMatrix = FMatrix::Identity;
+};
+
 #define MAX_AMBIENT_LIGHT 16
 #define MAX_DIRECTIONAL_LIGHT 16
 #define MAX_POINT_LIGHT 16
@@ -88,14 +114,14 @@ struct FSpotLightInfo
     float Padding2; // 필요시
 };
 
-struct FLightInfoBuffer
+struct FSceneLightConstants
 {
-    FAmbientLightInfo Ambient[MAX_AMBIENT_LIGHT];
-    FDirectionalLightInfo Directional[MAX_DIRECTIONAL_LIGHT];
-    FPointLightInfo PointLights[MAX_POINT_LIGHT];
-    FSpotLightInfo SpotLights[MAX_SPOT_LIGHT];
-    int DirectionalLightsCount;
-    int PointLightsCount;
-    int SpotLightsCount;
-    int AmbientLightsCount;
+    FDirectionalLightInfo DirectionalLightInfo;
+    FAmbientLightInfo AmbientLightInfo;
+    
+    int32 DirectionalLightsCount;
+    int32 AmbientLightsCount;
+    
+    int32 TotalActiveLightCount;
+    int32 Padding;
 };

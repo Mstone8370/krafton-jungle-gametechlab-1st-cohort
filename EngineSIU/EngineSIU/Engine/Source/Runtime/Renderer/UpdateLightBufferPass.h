@@ -1,12 +1,6 @@
 #pragma once
 
 #include "RenderPassBase.h"
-#include "EngineBaseTypes.h"
-#include "Container/Set.h"
-#include "Define.h"
-
-#define MAX_POINTLIGHT_PER_TILE 256
-#define MAX_SPOTLIGHT_PER_TILE 256
 
 class FDXDShaderManager;
 class UWorld;
@@ -16,18 +10,6 @@ class UPointLightComponent;
 class USpotLightComponent;
 class UDirectionalLightComponent;
 class UAmbientLightComponent;
-
-struct PointLightPerTile {
-    uint32 NumLights;
-    uint32 Indices[MAX_POINTLIGHT_PER_TILE];
-    uint32 Padding[3];
-};
-
-struct SpotLightPerTile {
-    uint32 NumLights;
-    uint32 Indices[MAX_SPOTLIGHT_PER_TILE];
-    uint32 Padding[3];
-};
 
 class FUpdateLightBufferPass : public FRenderPassBase
 {
@@ -39,60 +21,23 @@ public:
     virtual void PrepareRenderArr() override;
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
-    void UpdateLightBuffer() const;
-
-    void SetPointLightData(const TArray<UPointLightComponent*>& InPointLights, TArray<TArray<uint32>> InPointLightPerTiles);
-    void SetSpotLightData(const TArray<USpotLightComponent*>& InSpotLights, TArray<TArray<uint32>> InSpotLightPerTiles);
-    void SetLightData(const TArray<UPointLightComponent*>& InPointLights, const TArray<USpotLightComponent*>& InSpotLights, ID3D11ShaderResourceView* InPointLightIndexBufferSRV, ID3D11ShaderResourceView* InSpotLightIndexBufferSRV);
-
-    void CreatePointLightBuffer();
-    void CreateSpotLightBuffer();
-
-    void CreatePointLightPerTilesBuffer();
-    void CreateSpotLightPerTilesBuffer();
-
-    void UpdatePointLightBuffer();
-    void UpdateSpotLightBuffer();
-
-    void UpdatePointLightPerTilesBuffer();
-    void UpdateSpotLightPerTilesBuffer();
 
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
-private:
-    TArray<USpotLightComponent*> SpotLights;
-    TArray<UPointLightComponent*> PointLights;
-    TArray<UDirectionalLightComponent*> DirectionalLights;
-    TArray<UAmbientLightComponent*> AmbientLights;
-
-    TArray<TArray<uint32>> PointLightPerTiles;
-    TArray<PointLightPerTile> GPointLightPerTiles;
-
-    TArray<TArray<uint32>> SpotLightPerTiles;
-    TArray<SpotLightPerTile> GSpotLightPerTiles;
-
-    ID3D11Buffer* PointLightBuffer;
-    ID3D11ShaderResourceView* PointLightSRV;
-
-    ID3D11Buffer* SpotLightBuffer;
-    ID3D11ShaderResourceView* SpotLightSRV;
+    virtual void CreateResource() override;
     
-    ID3D11Buffer* PointLightPerTilesBuffer;
-    ID3D11ShaderResourceView* PointLightPerTilesSRV;
+private:
+    void UpdateLightBuffer() const;
+    
+    TArray<UPointLightComponent*> PointLightComps;
+    TArray<USpotLightComponent*> SpotLightComps;
 
-    ID3D11Buffer* SpotLightPerTilesBuffer;
-    ID3D11ShaderResourceView* SpotLightPerTilesSRV;
+    UDirectionalLightComponent* DirectionLightComp;
+    UAmbientLightComponent* AmbientLightComp;
 
-    ID3D11ShaderResourceView* PointLightIndexBufferSRV;
-    ID3D11ShaderResourceView* SpotLightIndexBufferSRV;
+    TArray<FLightData> LightData;
 
-    // Array for buffer update
-    TArray<FPointLightInfo> PointLightInfo;
-    TArray<FSpotLightInfo> SpotLightInfo;
-
-    static constexpr uint32 MAX_NUM_POINTLIGHTS = 1000;
-    static constexpr uint32 MAX_NUM_SPOTLIGHTS = 1000;
-    static constexpr uint32 MAX_TILE = 10000;
+    const uint32 MAX_LIGHT = 1024; // 한 씬에 허용하는 최대 조명 개수
 };
