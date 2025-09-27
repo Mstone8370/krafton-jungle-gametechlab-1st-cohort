@@ -25,9 +25,9 @@
 // Material Subset
 struct FMaterialSubset
 {
-    uint32 IndexStart; // Index Buffer Start pos
-    uint32 IndexCount; // Index Count
-    uint32 MaterialIndex; // Material Index
+    uint32 IndexStart = 0; // Index Buffer Start pos
+    uint32 IndexCount = 0; // Index Count
+    uint32 MaterialIndex = 0; // Material Index
     FString MaterialName; // Material Name
 
     friend FArchive& operator<<(FArchive& Ar, FMaterialSubset& Data)
@@ -41,7 +41,7 @@ struct FMaterialSubset
 
 struct FStaticMaterial
 {
-    class UMaterial* Material;
+    class UMaterial* Material = nullptr;
     FName MaterialSlotName;
 };
 
@@ -104,9 +104,9 @@ enum class EMaterialTextureSlots : uint8
 
 struct FTextureInfo
 {
-    FString TextureName;
-    FWString TexturePath;
-    bool bIsSRGB;
+    FString TextureName = "";
+    FWString TexturePath = L"";
+    bool bIsSRGB = false;
 
     friend FArchive& operator<<(FArchive& Ar, FTextureInfo& Info)
     {
@@ -139,7 +139,7 @@ struct FMaterialInfo
     float IOR = 1.5f;                                              // Ni: Index of Refraction
     float Transparency = 0.f;                                      // d or Tr: Transparency of surface
     float BumpMultiplier = 1.f;                                    // -bm: Bump Multiplier
-    uint32 IlluminanceModel;                                       // illum: illumination Model between 0 and 10.
+    uint32 IlluminanceModel = 0;                                       // illum: illumination Model between 0 and 10.
 
     float Metallic = 0.0f;                                         // Pm: Metallic
     float Roughness = 0.5f;                                        // Pr: Roughness
@@ -175,23 +175,26 @@ struct FMaterialInfo
 
 struct FVertexTexture
 {
-    float x, y, z;    // Position
-    float u, v; // Texture
+    float x = 0.f; // Position
+    float y = 0.f;
+    float z = 0.f; 
+    float u = 0.f; // Texture
+    float v = 0.f; 
 };
 
 struct FGridParameters
 {
-    float GridSpacing;
-    int   NumGridLines;
-    FVector2D Padding1;
+    float GridSpacing = 0.f;
+    int   NumGridLines = 0;
+    FVector2D Padding1 = FVector2D::ZeroVector;
     
-    FVector GridOrigin;
-    float pad;
+    FVector GridOrigin = FVector::ZeroVector;
+    float pad = 0.f;
 };
 
 struct FSimpleVertex
 {
-    float dummy; // 내용은 사용되지 않음
+    float dummy = 0.f; // 내용은 사용되지 않음
     float padding[11];
 };
 
@@ -204,7 +207,11 @@ struct FRect
 {
     FRect() : TopLeftX(0), TopLeftY(0), Width(0), Height(0) {}
     FRect(float x, float y, float w, float h) : TopLeftX(x), TopLeftY(y), Width(w), Height(h) {}
-    float TopLeftX, TopLeftY, Width, Height;
+    
+    float TopLeftX = 0.f;
+    float TopLeftY = 0.f;
+    float Width = 0.f;
+    float Height = 0.f;
 };
 
 struct FPoint
@@ -214,7 +221,8 @@ struct FPoint
     FPoint(long _x, long _y) : x(static_cast<float>(_x)), y(static_cast<float>(_y)) {}
     FPoint(int _x, int _y) : x(static_cast<float>(_x)), y(static_cast<float>(_y)) {}
 
-    float x, y;
+    float x = 0.f;
+    float y = 0.f;
 };
 
 struct FBoundingBox
@@ -222,11 +230,11 @@ struct FBoundingBox
     FBoundingBox() = default;
     FBoundingBox(FVector InMin, FVector InMax) : MinLocation(InMin), MaxLocation(InMax) {}
     
-    FVector MinLocation; // Minimum extents
-    float pad;
+    FVector MinLocation = FVector::ZeroVector; // Minimum extents
+    float pad = 0.f;
     
-    FVector MaxLocation; // Maximum extents
-    float pad1;
+    FVector MaxLocation = FVector::ZeroVector; // Maximum extents
+    float pad1 = 0.f;
 
     bool IsValidBox() const
     {
@@ -352,202 +360,192 @@ struct FBoundingBox
 
 struct FCone
 {
-    FVector ConeApex; // 원뿔의 꼭짓점
-    float ConeRadius; // 원뿔 밑면 반지름
+    FVector ConeApex = FVector::ZeroVector; // 원뿔의 꼭짓점
+    float ConeRadius = 0.f; // 원뿔 밑면 반지름
 
-    FVector ConeBaseCenter; // 원뿔 밑면 중심
-    float ConeHeight; // 원뿔 높이 (Apex와 BaseCenter 간 차이)
+    FVector ConeBaseCenter = FVector::ZeroVector; // 원뿔 밑면 중심
+    float ConeHeight = 0.f; // 원뿔 높이 (Apex와 BaseCenter 간 차이)
     
-    FVector4 Color;
+    FVector4 Color = FVector4(0.f, 0.f, 0.f, 0.f);
 
-    int ConeSegmentCount; // 원뿔 밑면 분할 수
+    int ConeSegmentCount = 0; // 원뿔 밑면 분할 수
     float pad[3];
 };
 
 struct FPrimitiveCounts
 {
-    int BoundingBoxCount;
-    int pad;
-    int ConeCount;
-    int pad1;
+    int BoundingBoxCount = 0;
+    int pad = 0;
+    int ConeCount = 0;
+    int pad1 = 0;
 };
 
-#define MAX_LIGHTS 16
 #define NUM_FACES 6
 #define MAX_CASCADE_NUM 5
 
-enum ELightType
-{
-    POINT_LIGHT = 1,
-    SPOT_LIGHT = 2,
-    DIRECTIONAL_LIGHT = 3,
-    AMBIENT_LIGHT = 4,
-    NUM_LIGHT_TYPES = 5
-};
-
 struct FMaterialConstants
 {
-    uint32 TextureFlag;
-    FVector DiffuseColor;
+    uint32 TextureFlag = 0;
+    FVector DiffuseColor = FVector::ZeroVector;
 
-    FVector SpecularColor;
-    float Shininess;
+    FVector SpecularColor = FVector::ZeroVector;
+    float Shininess = 0.f;
 
-    FVector EmissiveColor;
-    float Transparency;
+    FVector EmissiveColor = FVector::ZeroVector;
+    float Transparency = 0.f;
 
-    float Metallic;
-    float Roughness;
-    FVector2D MaterialPadding;
+    float Metallic = 0.f;
+    float Roughness = 0.f;
+    FVector2D MaterialPadding = FVector2D::ZeroVector;
 };
 
 struct FPointLightGSBuffer
 {
-    FMatrix World;
+    FMatrix World = FMatrix::Identity;
     FMatrix ViewProj[NUM_FACES]; // 6 : NUM_FACES
 };
 
 struct FCascadeConstantBuffer
 {
-    FMatrix World;
+    FMatrix World = FMatrix::Identity;
     FMatrix ViewProj[MAX_CASCADE_NUM];
     FMatrix InvViewProj[MAX_CASCADE_NUM];
     FMatrix InvProj[MAX_CASCADE_NUM];
-    FVector4 CascadeSplit;
+    FVector4 CascadeSplit = FVector4(0.f, 0.f, 0.f, 0.f);
 
-    float pad1;
-    float pad2;
+    float pad1 = 0.f;
+    float pad2 = 0.f;
 };
 
 struct FShadowConstantBuffer
 {
-    FMatrix ShadowViewProj; // Light 광원 입장에서의 ViewProj
+    FMatrix ShadowViewProj = FMatrix::Identity; // Light 광원 입장에서의 ViewProj
 };
 
 struct FObjectConstantBuffer
 {
-    FMatrix WorldMatrix;
-    FMatrix InverseTransposedWorld;
+    FMatrix WorldMatrix = FMatrix::Identity;
+    FMatrix InverseTransposedWorld = FMatrix::Identity;
     
-    FVector4 UUIDColor;
+    FVector4 UUIDColor = FVector4(0.f, 0.f, 0.f, 0.f);
     
-    int bIsSelected;
-    FVector pad;
+    int32 bIsSelected = 0;
+    FVector pad = FVector::ZeroVector;
 };
 
 struct FCameraConstantBuffer
 {
-    FMatrix ViewMatrix;
-    FMatrix InvViewMatrix;
+    FMatrix ViewMatrix = FMatrix::Identity;
+    FMatrix InvViewMatrix = FMatrix::Identity;
     
-    FMatrix ProjectionMatrix;
-    FMatrix InvProjectionMatrix;
+    FMatrix ProjectionMatrix = FMatrix::Identity;
+    FMatrix InvProjectionMatrix = FMatrix::Identity;
     
-    FVector ViewLocation;
-    float Padding1;
+    FVector ViewLocation = FVector::ZeroVector;
+    float Padding1 = 0.f;
 
-    float NearClip;
-    float FarClip;
-    FVector2D Padding2;
+    float NearClip = 0.f;
+    float FarClip = 0.f;
+    FVector2D Padding2 = FVector2D::ZeroVector;
 };
 
 struct FSubUVConstant
 {
-    FVector2D uvOffset;
-    FVector2D uvScale;
+    FVector2D uvOffset = FVector2D::ZeroVector;
+    FVector2D uvScale = FVector2D::ZeroVector;
 };
 
 struct FLitUnlitConstants
 {
-    int bIsLit; // 1 = Lit, 0 = Unlit 
-    FVector pad;
+    int bIsLit = 0; // 1 = Lit, 0 = Unlit 
+    FVector pad = FVector::ZeroVector;
 };
 
 struct FIsShadowConstants
 {
-    int bIsShadow;
-    FVector pad;
+    int bIsShadow = 0;
+    FVector pad = FVector::ZeroVector;
 };
 
 struct FViewModeConstants
 {
-    uint32 ViewMode;
-    FVector pad;
+    uint32 ViewMode = 0;
+    FVector pad = FVector::ZeroVector;
 };
 
 struct FSubMeshConstants
 {
-    float bIsSelectedSubMesh;
-    FVector pad;
+    float bIsSelectedSubMesh = 0.f;
+    FVector pad = FVector::ZeroVector;
 };
 
 struct FTextureUVConstants
 {
-    float UOffset;
-    float VOffset;
-    float pad0;
-    float pad1;
+    float UOffset = 0.f;
+    float VOffset = 0.f;
+    float pad0 = 0.f;
+    float pad1 = 0.f;
 };
 
 struct FLinePrimitiveBatchArgs
 {
-    FGridParameters GridParam;
-    ID3D11Buffer* VertexBuffer;
-    int BoundingBoxCount;
-    int ConeCount;
-    int ConeSegmentCount;
-    int OBBCount;
+    FGridParameters GridParam = {};
+    ID3D11Buffer* VertexBuffer = nullptr;
+    int BoundingBoxCount = 0;
+    int ConeCount = 0;
+    int ConeSegmentCount = 0;
+    int OBBCount = 0;
 };
 
 struct FViewportSize
 {
-    FVector2D ViewportSize;
-    float Padding1;
-    float Padding2;
+    FVector2D ViewportSize = FVector2D::ZeroVector;
+    float Padding1 = 0.f;
+    float Padding2 = 0.f;
 };
 
 struct FVertexInfo
 {
-    uint32_t NumVertices;
-    uint32_t Stride;
-    ID3D11Buffer* VertexBuffer;
+    uint32_t NumVertices = 0;
+    uint32_t Stride = 0;
+    ID3D11Buffer* VertexBuffer = nullptr;
 };
 
 struct FIndexInfo
 {
-    uint32_t NumIndices;
-    ID3D11Buffer* IndexBuffer;
+    uint32_t NumIndices = 0;
+    ID3D11Buffer* IndexBuffer = nullptr;
 };
 
 struct FBufferInfo
 {
-    FVertexInfo VertexInfo;
-    FIndexInfo IndexInfo;
+    FVertexInfo VertexInfo = {};
+    FIndexInfo IndexInfo = {};
 };
 
 struct FFogConstants
 {
-    FLinearColor FogColor;
+    FLinearColor FogColor = FLinearColor::White;
     
-    float StartDistance;
-    float EndDistance;    
-    float FogHeight;
-    float FogHeightFalloff;
+    float StartDistance = 0.f;
+    float EndDistance = 0.f;
+    float FogHeight = 0.f;
+    float FogHeightFalloff = 0.f;
     
-    float FogDensity;
-    float FogDistanceWeight;
-    float padding1;
-    float padding2;
+    float FogDensity = 0.f;
+    float FogDistanceWeight = 0.f;
+    float padding1 = 0.f;
+    float padding2 = 0.f;
 };
 
 struct FGammaConstants
 {
-    float GammaValue;
-    FVector Padding;
+    float GammaValue = 1.f;
+    FVector Padding = FVector::ZeroVector;
 };
 
 struct FCPUSkinningConstants
 {
-    int bCPUSkinning;
-    FVector Padding;
+    int32 bCPUSkinning = 0;
+    FVector Padding = FVector::ZeroVector;
 };

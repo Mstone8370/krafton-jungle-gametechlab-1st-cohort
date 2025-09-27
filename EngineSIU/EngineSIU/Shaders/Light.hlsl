@@ -863,7 +863,6 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     }
 */
 
-    [unroll(TotalActiveLightCount)]
     for (int i = 0; i < TotalActiveLightCount; i++)
     {
         FLightOutput Result = (FLightOutput)0;

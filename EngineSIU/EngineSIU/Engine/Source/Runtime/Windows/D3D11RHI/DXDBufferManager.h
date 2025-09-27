@@ -219,6 +219,7 @@ HRESULT FDXDBufferManager::CreateVertexBufferInternal(const FWString& KeyName, c
     const HRESULT Result = DXDevice->CreateBuffer(&BufferDesc, &InitData, &NewBuffer);
     if (FAILED(Result))
     {
+        OutputDebugStringA("Failed to create vertex buffer");
         return Result;
     }
 

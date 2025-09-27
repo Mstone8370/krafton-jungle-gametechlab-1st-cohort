@@ -53,11 +53,18 @@ void FUpdateLightBufferPass::PrepareRenderArr()
 
 void FUpdateLightBufferPass::ClearRenderArr()
 {
+    PointLightComps.Empty();
+    SpotLightComps.Empty();
+
+    DirectionLightComp = nullptr;
+    AmbientLightComp = nullptr;
 }
 
 void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     UpdateLightBuffer(Viewport);
+    
+    BufferManager->BindStructuredBufferSRV("FLightDataBuffer", 10, EShaderStage::Pixel);
 }
 
 void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -212,7 +219,7 @@ void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorView
         }
     }
 
-    BufferManager->UpdateStructuredBuffer("LightDataBuffer", LightData);
+    BufferManager->UpdateStructuredBuffer("FLightDataBuffer", LightData);
 }
 
 float FUpdateLightBufferPass::CalculateLightImportance(const ULightComponentBase* Light, const std::shared_ptr<FEditorViewportClient>& Viewport) const
@@ -293,5 +300,5 @@ void FUpdateLightBufferPass::CreateResource()
     UINT LightInfoBufferSize = sizeof(FSceneLightConstants);
     BufferManager->CreateBufferGeneric<FSceneLightConstants>("FLightInfoBuffer", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
-    BufferManager->CreateStructuredBufferGeneric<FLightData>("LightDataBuffer", nullptr, MAX_LIGHT, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    BufferManager->CreateStructuredBufferGeneric<FLightData>("FLightDataBuffer", nullptr, MAX_LIGHT, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 }

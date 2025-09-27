@@ -150,8 +150,8 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
             SpecularColor,
             Shininess,
     #endif
-            BaseAlpha,
-            FlatTileIndex
+            BaseAlpha // ,
+            // FlatTileIndex
         );
 
         // Apply Emissive
