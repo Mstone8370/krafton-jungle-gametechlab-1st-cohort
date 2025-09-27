@@ -1,15 +1,13 @@
 
 #define MAX_LIGHTS 16 
 
-#define MAX_DIRECTIONAL_LIGHT 16
 #define MAX_POINT_LIGHT 16
 #define MAX_SPOT_LIGHT 16
-#define MAX_AMBIENT_LIGHT 16
 
+#define SPOT_LIGHT          0
 #define POINT_LIGHT         1
-#define SPOT_LIGHT          2
-#define DIRECTIONAL_LIGHT   3
-#define AMBIENT_LIGHT       4
+#define SPOT_LIGHT_SHADOW   2
+#define POINT_LIGHT_SHADOW  3
 
 #define MAX_LIGHT_PER_TILE 1024
 
@@ -23,7 +21,7 @@ struct FLightData
 {
     float4 LightColor;
 
-    float3 Location;
+    float3 Position;
     float Radius;
 
     float3 Direction;
@@ -119,11 +117,11 @@ struct FSpotLightInfo
 
 cbuffer FLightInfoBuffer : register(b0)
 {
-    FDirectionalLightInfo DirectionalLightInfo[MAX_DIRECTIONAL_LIGHT];
-    FAmbientLightInfo AmbientLightInfo[MAX_AMBIENT_LIGHT];
+    FDirectionalLightInfo DirectionalLightInfo;
+    FAmbientLightInfo AmbientLightInfo;
     
-    int DirectionalLightsCount;
-    int AmbientLightsCount;
+    int DirectionalLightCount;
+    int AmbientLightCount;
     
     int TotalActiveLightCount;
     int LightInfoBufferPadding;
@@ -170,11 +168,7 @@ float4 DebugCSMColor(uint idx)
     return float4(1, 1, 1, 1); // 나머지 – 흰색
 }
 
-StructuredBuffer<FPointLightInfo> gPointLights : register(t10);
-StructuredBuffer<FSpotLightInfo> gSpotLights   : register(t11);
-
-StructuredBuffer<uint> PerTilePointLightIndexBuffer : register(t12);
-StructuredBuffer<uint> PerTileSpotLightIndexBuffer  : register(t13);
+StructuredBuffer<FLightData> LightData : register(t10);
 
 // Begin Shadow
 SamplerComparisonState ShadowSamplerCmp : register(s10);
@@ -197,78 +191,6 @@ uint GetCascadeIndex(float ViewDepth)
         }
     }
     return MAX_CASCADE_NUM - 1;
-}
-
-// NdcDepthToViewDepth
-float N2V(float ndcDepth, matrix invProj)
-{
-    float4 pointView = mul(float4(0, 0, ndcDepth, 1), invProj);
-    return pointView.z / pointView.w;
-}
-
-float PCF_Filter(float2 uv, float zReceiverNdc, float filterRadiusUV, uint csmIndex)
-{
-    float sum = 0.0f;
-    [unroll]
-    for (int i = 0; i < 64; ++i)
-    {
-        // TODO (offset, 0)에 배열(slice) 인덱스 넣기
-        float2 offset = diskSamples64[i] * filterRadiusUV;
-        sum += DirectionShadowMapArray.SampleCmpLevelZero(ShadowSamplerCmp, float3(uv + offset, csmIndex), zReceiverNdc);
-    }
-    return sum / 64;
-}
-
-void FindBlocker(out float avgBlockerDepthView, out float numBlockers, float2 uv,
-                 float zReceiverView, Texture2DArray DirectionShadowMapArray, matrix InvProj, float LightRadiusWorld, uint csmIndex, FDirectionalLightInfo LightInfo)
-{
-    float LightRadiusUV = LightRadiusWorld / LightInfo.OrthoWidth; // TO FIX!
-    float searchRadius = LightRadiusUV * (zReceiverView - NEAR_PLANE) / zReceiverView; // TO FIX! NearPlane
-    float blockerSum = 0;
-    numBlockers = 0;
-
-    for (int i = 0; i < 64; ++i)
-    {
-        // TODO : slice index 받아야 함 (searchRadius , 배열 인덱스)
-        float ShadowMapDepth = DirectionShadowMapArray.SampleLevel(ShadowPointSampler, float3(uv + diskSamples64[i] * searchRadius, csmIndex), 0).r;
-        ShadowMapDepth = N2V(ShadowMapDepth, InvProj);
-        if (ShadowMapDepth < zReceiverView)
-        {
-            blockerSum += ShadowMapDepth;
-            numBlockers += 1;
-        }
-    }
-    avgBlockerDepthView = (numBlockers > 0) ? (blockerSum / numBlockers) : 0.0f;
-}
-
-// TODO: 사용하려면 계산식을 수정할 필요가 있음.
-float PCSS(float2 UV, float ZReceiverNDC, Texture2DArray DirectionShadowMapArray, matrix ShadowInvProj, float LightRadiusWorld, uint CsmIndex, FDirectionalLightInfo LightInfo)
-{
-    float LightRadiusUV = LightRadiusWorld / 2.0; // TO FIX!
-    float ZReceiverView = N2V(ZReceiverNDC, CascadedInvProj[CsmIndex]);
-
-
-    // 1. Blocker Search
-    float AvgBlockerDepthView = 0;
-    float NumBlockers = 0;
-
-    FindBlocker(AvgBlockerDepthView, NumBlockers, UV, ZReceiverView, DirectionShadowMapArray, CascadedInvProj[CsmIndex], LightRadiusWorld, CsmIndex, LightInfo);
-
-
-    if (NumBlockers < 1)
-    {
-        // There are no Occluders so early out(this saves filtering)
-        return 1.0f;
-    }
-    else
-    {
-        // 2. Penumbra Size
-        float PenumbraRatio = (ZReceiverView - AvgBlockerDepthView) / AvgBlockerDepthView;
-        float FilterRadiusUV = PenumbraRatio * LightRadiusUV * NEAR_PLANE / ZReceiverView; // TO FIX!!!!
-
-        // 3. Filtering
-        return PCF_Filter(UV, ZReceiverNDC, FilterRadiusUV, CsmIndex);
-    }
 }
 
 float CalculateDirectionalShadowFactor(float3 WorldPosition, float3 WorldNormal, FDirectionalLightInfo LightInfo, // 라이트 정보 전체 전달
@@ -542,12 +464,12 @@ FLightOutput PointLight(int Index, float3 WorldPosition, float3 WorldNormal, flo
 {
     FLightOutput Output = (FLightOutput)0;
     
-    FPointLightInfo LightInfo = gPointLights[Index];
+    FLightData Data = LightData[Index];
     
-    float3 ToLight = LightInfo.Position - WorldPosition;
+    float3 ToLight = Data.Position - WorldPosition;
     float Distance = length(ToLight);
     
-    float Attenuation = GetDistanceAttenuation(Distance, LightInfo.Radius);
+    float Attenuation = GetDistanceAttenuation(Distance, Data.Radius);
     if (Attenuation <= 0.0)
     {
         return Output;
@@ -555,10 +477,10 @@ FLightOutput PointLight(int Index, float3 WorldPosition, float3 WorldNormal, flo
     
     // --- 그림자 계산
     float Shadow = 1.0;
-    if (LightInfo.CastShadows && IsShadow)
+    if (Data.Type > 1 && IsShadow)
     {
         // 그림자 계산
-        Shadow = CalculatePointShadowFactor(WorldPosition, LightInfo, PointShadowMapArray, ShadowSamplerCmp);
+        // Shadow = CalculatePointShadowFactor(WorldPosition, LightInfo, PointShadowMapArray, ShadowSamplerCmp);
         // 그림자 계수가 0 이하면 더 이상 계산 불필요
         if (Shadow <= 0.0)
         {
@@ -583,7 +505,7 @@ FLightOutput PointLight(int Index, float3 WorldPosition, float3 WorldNormal, flo
 #endif
     );
 
-    float3 LightEnergy = LightInfo.LightColor.rgb * LightInfo.Intensity;
+    float3 LightEnergy = Data.LightColor.rgb * Data.Intensity;
 
     Output.DiffuseContribution  = BRDF.DiffuseContribution * LightEnergy * Attenuation * Shadow * NdotL;
     Output.SpecularContribution = BRDF.SpecularContribution * LightEnergy * Attenuation * Shadow * NdotL;
@@ -601,13 +523,16 @@ FLightOutput SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, floa
 {
     FLightOutput Output = (FLightOutput)0;
     
-    FSpotLightInfo LightInfo = gSpotLights[Index];
+    FLightData Data = LightData[Index];
     
-    float3 ToLight = LightInfo.Position - WorldPosition;
+    float3 ToLight = Data.Position - WorldPosition;
     float Distance = length(ToLight);
     float3 LightDir = normalize(ToLight);
+
+    float OuterRad = Data.SpotRadians.x;
+    float InnerRad = Data.SpotRadians.y;
     
-    float SpotlightFactor = GetSpotLightAttenuation(Distance, LightInfo.Radius, LightDir, normalize(LightInfo.Direction), LightInfo.InnerRad, LightInfo.OuterRad);
+    float SpotlightFactor = GetSpotLightAttenuation(Distance, Data.Radius, LightDir, normalize(Data.Direction), InnerRad, OuterRad);
     if (SpotlightFactor <= 0.0)
     {
         return Output;
@@ -615,10 +540,10 @@ FLightOutput SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, floa
 
     // --- 그림자 계산
     float Shadow = 1.0;
-    if (LightInfo.CastShadows && IsShadow)
+    if (Data.Type > 1 && IsShadow)
     {
         // 그림자 계산
-        Shadow  = CalculateSpotShadowFactor(WorldPosition, LightInfo, SpotShadowMapArray, ShadowSamplerCmp);
+        // Shadow = CalculateSpotShadowFactor(WorldPosition, Data, SpotShadowMapArray, ShadowSamplerCmp);
         // 그림자 계수가 0 이하면 더 이상 계산 불필요
         if (Shadow <= 0.0)
         {
@@ -643,7 +568,7 @@ FLightOutput SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, floa
 #endif
     );
     
-    float3 LightEnergy = LightInfo.LightColor.rgb * LightInfo.Intensity;
+    float3 LightEnergy = Data.LightColor.rgb * Data.Intensity;
 
     Output.DiffuseContribution  = BRDF.DiffuseContribution * LightEnergy * SpotlightFactor * Shadow * NdotL;
     Output.SpecularContribution = BRDF.SpecularContribution * LightEnergy * SpotlightFactor * Shadow * NdotL;
@@ -651,7 +576,7 @@ FLightOutput SpotLight(int Index, float3 WorldPosition, float3 WorldNormal, floa
     return Output;
 }
 
-FLightOutput DirectionalLight(int Index, float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
+FLightOutput DirectionalLight(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPosition,
 #ifdef LIGHTING_MODEL_PBR
     float3 BaseColor, float Metallic, float Roughness
 #else
@@ -661,7 +586,7 @@ FLightOutput DirectionalLight(int Index, float3 WorldPosition, float3 WorldNorma
 {
     FLightOutput Output = (FLightOutput)0;
     
-    FDirectionalLightInfo LightInfo = DirectionalLightInfo[Index];
+    FDirectionalLightInfo LightInfo = DirectionalLightInfo;
     
     float4 posCam = mul(float4(WorldPosition, 1), ViewMatrix);
     float depthCam = posCam.z / posCam.w;
@@ -744,6 +669,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
      * RGB 색상 값을 인간이 인지하는 밝기로 변환하기 위한 가중치.
      * Rec.709(ITU-R BT.709) 표준.
      */
+    /*
     float3 LUMINANCE = float3(0.299, 0.587, 0.114);
     
     float3 AccumulatedDiffuseColor = float3(0.0, 0.0, 0.0);
@@ -829,7 +755,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 
     if (AmbientLightsCount > 0)
     {
-        IBL_DiffuseColor = AmbientLightInfo[0].AmbientColor.rgb;
+        IBL_DiffuseColor = AmbientLightInfo.AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
 #else
@@ -837,7 +763,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     if (AmbientLightsCount > 0)
     {
-        AmbientLightColor = AmbientLightInfo[0].AmbientColor.rgb;
+        AmbientLightColor = AmbientLightInfo.AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += DiffuseColor * AmbientLightColor;
 #endif
@@ -855,8 +781,9 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 #endif
     );
 
-    
     return float4(FinalRGB, FinalAlpha);
+    */
+    return float4(0.0, 0.0, 0.0, 0.0);
 }
 
 
@@ -881,7 +808,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     // 광원으로부터 계산된 스페큘러 값들 중 최대값
     float MaxObservedSpecularLuminance = 0.0f;
     
-
+/*
     // 조명 계산
     // 다소 비효율적일 수도 있음.
     [unroll(MAX_POINT_LIGHT)]
@@ -934,23 +861,73 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
 
         MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
     }
+*/
 
+    [unroll(TotalActiveLightCount)]
+    for (int i = 0; i < TotalActiveLightCount; i++)
+    {
+        FLightOutput Result = (FLightOutput)0;
+        if (LightData[i].Type == 0 || LightData[i].Type == 2) // SpotLight
+        {
+            Result = SpotLight(
+                i, WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+                BaseColor, Metallic, Roughness
+#else
+                DiffuseColor, SpecularColor, Shininess
+#endif
+            );
+        }
+        else // PointLight
+        {
+            Result = PointLight(
+                i, WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+                BaseColor, Metallic, Roughness
+#else
+                DiffuseColor, SpecularColor, Shininess
+#endif
+            );
+        }
+        AccumulatedDiffuseColor += Result.DiffuseContribution;
+        AccumulatedSpecularColor += Result.SpecularContribution;
 
+        MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
+    }
+
+    
+    if (DirectionalLightCount > 0)
+    {
+        FLightOutput Result = DirectionalLight(
+            WorldPosition, WorldNormal, WorldViewPosition,
+#ifdef LIGHTING_MODEL_PBR
+            BaseColor, Metallic, Roughness
+#else
+            DiffuseColor, SpecularColor, Shininess
+#endif
+        );
+        AccumulatedDiffuseColor += Result.DiffuseContribution;
+        AccumulatedSpecularColor += Result.SpecularContribution;
+
+        MaxObservedSpecularLuminance = max(MaxObservedSpecularLuminance, dot(Result.SpecularContribution, LUMINANCE));
+    }
+
+    
     // 앰비언트
 #ifdef LIGHTING_MODEL_PBR
     float3 IBL_DiffuseColor = float3(0.01, 0.01, 0.01); // TODO: 임시 값으로, 추후 IBL 적용
 
-    if (AmbientLightsCount > 0)
+    if (AmbientLightCount > 0)
     {
-        IBL_DiffuseColor = AmbientLightInfo[0].AmbientColor.rgb;
+        IBL_DiffuseColor = AmbientLightInfo.AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
 #else
     float3 AmbientLightColor = float3(0.01, 0.01, 0.01);
     
-    if (AmbientLightsCount > 0)
+    if (AmbientLightCount > 0)
     {
-        AmbientLightColor = AmbientLightInfo[0].AmbientColor.rgb;
+        AmbientLightColor = AmbientLightInfo.AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += DiffuseColor * AmbientLightColor;
 #endif

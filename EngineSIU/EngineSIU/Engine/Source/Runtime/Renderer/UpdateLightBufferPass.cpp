@@ -290,5 +290,8 @@ void FUpdateLightBufferPass::CleanUpRender(const std::shared_ptr<FEditorViewport
 
 void FUpdateLightBufferPass::CreateResource()
 {
+    UINT LightInfoBufferSize = sizeof(FSceneLightConstants);
+    BufferManager->CreateBufferGeneric<FSceneLightConstants>("FLightInfoBuffer", nullptr, LightInfoBufferSize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
     BufferManager->CreateStructuredBufferGeneric<FLightData>("LightDataBuffer", nullptr, MAX_LIGHT, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 }
