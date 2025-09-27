@@ -14,6 +14,7 @@ UPointLightComponent::UPointLightComponent()
     PointLightInfo.Intensity = 100000.f;
     PointLightInfo.Type = 1;
     PointLightInfo.Attenuation = 100000.f;
+    PointLightInfo.ShadowBias = 0.005f;
 
     // CubeMap이므로 6개의 ShadowMap을 생성합니다.
     // constexpr int32 ShadowMapCreationCount = 6;  

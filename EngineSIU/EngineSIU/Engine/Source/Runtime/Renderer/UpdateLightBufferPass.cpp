@@ -163,27 +163,31 @@ void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorView
             const FLightCandidate& Candidate = Candidates[i];
             if (Candidate.Type == 0) // SpotLight
             {
+                const USpotLightComponent* Light = SpotLightComps[Candidate.OriginalIndex]; 
                 const FSpotLightInfo& SpotLightInfo = SpotLightComps[Candidate.OriginalIndex]->GetSpotLightInfo();
-                LightData[i].LightColor = SpotLightInfo.LightColor;
-                LightData[i].Location = SpotLightInfo.Position;
-                LightData[i].Radius = SpotLightInfo.Radius;
-                LightData[i].Direction = SpotLightInfo.Direction;
-                LightData[i].Intensity = SpotLightInfo.Intensity;
-                LightData[i].UpVector = SpotLightComps[i]->GetUpVector();
+                
+                LightData[i].LightColor = Light->GetLightColor();
+                LightData[i].Location = Light->GetComponentLocation();
+                LightData[i].Radius = Light->GetRadius();
+                LightData[i].Direction = Light->GetForwardVector();
+                LightData[i].Intensity = Light->GetIntensity();
+                LightData[i].UpVector = Light->GetUpVector();
                 LightData[i].ShadowBias = SpotLightInfo.ShadowBias;
-                LightData[i].SpotRadians = FVector2D(SpotLightInfo.OuterRad, SpotLightInfo.InnerRad);
-                LightData[i].Type = 0 + (SpotLightInfo.CastShadows) * 2;
+                LightData[i].SpotRadians = FVector2D(Light->GetOuterRad(), Light->GetInnerRad());
+                LightData[i].Type = 0 + (Light->GetCastShadows() ? 1 : 0) * 2;
                 LightData[i].ShadowMapIndex = i;
             }
             else // PointLight
             {
+                const UPointLightComponent* Light = PointLightComps[Candidate.OriginalIndex];
                 FPointLightInfo PointLightInfo = PointLightComps[Candidate.OriginalIndex]->GetPointLightInfo();
-                LightData[i].LightColor = PointLightInfo.LightColor;
-                LightData[i].Location = PointLightInfo.Position;
-                LightData[i].Radius = PointLightInfo.Radius;
-                LightData[i].Intensity = PointLightInfo.Intensity;
+                
+                LightData[i].LightColor = Light->GetLightColor();
+                LightData[i].Location = Light->GetComponentLocation();
+                LightData[i].Radius = Light->GetRadius();
+                LightData[i].Intensity = Light->GetIntensity();
                 LightData[i].ShadowBias = PointLightInfo.ShadowBias;
-                LightData[i].Type = 1 + (PointLightInfo.CastShadows) * 2;
+                LightData[i].Type = 1 + (Light->GetCastShadows() ? 1 : 0) * 2;
             }
         }
     }
@@ -191,30 +195,34 @@ void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorView
     {
         for (int32 i = 0; i < SpotLightCount; ++i)
         {
+            const USpotLightComponent* Light = SpotLightComps[i];
             const FSpotLightInfo& SpotLightInfo = SpotLightComps[i]->GetSpotLightInfo();
-            LightData[i].LightColor = SpotLightInfo.LightColor;
-            LightData[i].Location = SpotLightInfo.Position;
-            LightData[i].Radius = SpotLightInfo.Radius;
-            LightData[i].Direction = SpotLightInfo.Direction;
-            LightData[i].Intensity = SpotLightInfo.Intensity;
-            LightData[i].UpVector = SpotLightComps[i]->GetUpVector();
+            
+            LightData[i].LightColor = Light->GetLightColor();
+            LightData[i].Location = Light->GetComponentLocation();
+            LightData[i].Radius = Light->GetRadius();
+            LightData[i].Direction = Light->GetForwardVector();
+            LightData[i].Intensity = Light->GetIntensity();
+            LightData[i].UpVector = Light->GetUpVector();
             LightData[i].ShadowBias = SpotLightInfo.ShadowBias;
-            LightData[i].SpotRadians = FVector2D(SpotLightInfo.OuterRad, SpotLightInfo.InnerRad);
-            LightData[i].Type = 0 + (SpotLightInfo.CastShadows) * 2;
+            LightData[i].SpotRadians = FVector2D(Light->GetOuterRad(), Light->GetInnerRad());
+            LightData[i].Type = 0 + (Light->GetCastShadows() ? 1 : 0) * 2;
             LightData[i].ShadowMapIndex = i;
         }
         
         for (int32 i = 0; i < PointLightCount; ++i)
         {
             const int32 TargetIdx = SpotLightCount + i;
-            
+
+            const UPointLightComponent* Light = PointLightComps[i];
             const FPointLightInfo& PointLightInfo = PointLightComps[i]->GetPointLightInfo();
-            LightData[TargetIdx].LightColor = PointLightInfo.LightColor;
-            LightData[TargetIdx].Location = PointLightInfo.Position;
-            LightData[TargetIdx].Radius = PointLightInfo.Radius;
-            LightData[TargetIdx].Intensity = PointLightInfo.Intensity;
+            
+            LightData[TargetIdx].LightColor = Light->GetLightColor();
+            LightData[TargetIdx].Location = Light->GetComponentLocation();
+            LightData[TargetIdx].Radius = Light->GetRadius();
+            LightData[TargetIdx].Intensity = Light->GetIntensity();
             LightData[TargetIdx].ShadowBias = PointLightInfo.ShadowBias;
-            LightData[TargetIdx].Type = 1 + (PointLightInfo.CastShadows) * 2;
+            LightData[TargetIdx].Type = 1 + (Light->GetCastShadows() ? 1 : 0) * 2;
             LightData[TargetIdx].ShadowMapIndex = i;
         }
     }

@@ -18,6 +18,8 @@ USpotLightComponent::USpotLightComponent()
     SpotLightInfo.InnerRad = 0.2618f;
     SpotLightInfo.OuterRad = 0.5236f;
     SpotLightInfo.Attenuation = 20.0f;
+    SpotLightInfo.ShadowBias = 0.005f;
+    SpotLightInfo.CastShadows = 1;
 }
 
 UObject* USpotLightComponent::Duplicate(UObject* InOuter)

@@ -20,10 +20,10 @@ public:
     const FDirectionalLightInfo& GetDirectionalLightInfo() const;
     void SetDirectionalLightInfo(const FDirectionalLightInfo& InDirectionalLightInfo);
 
-    float GetIntensity() const;
+    virtual float GetIntensity() const override;
     void SetIntensity(float InIntensity);
 
-    bool GetCastShadows() const { return DirectionalLightInfo.CastShadows; }
+    virtual bool GetCastShadows() const override { return DirectionalLightInfo.CastShadows; }
     void SetCastShadows(bool InCastShadows) { DirectionalLightInfo.CastShadows = InCastShadows; }
 
     FLinearColor GetLightColor() const;

@@ -71,45 +71,45 @@ struct FDirectionalLightInfo
 
 struct FPointLightInfo
 {
-    FLinearColor LightColor;         // RGB + alpha
+    FLinearColor LightColor = FLinearColor::White;         // RGB + alpha
 
-    FVector Position;    // 월드 공간 위치
-    float   Radius;      // 감쇠가 0이 되는 거리
+    FVector Position = FVector::ZeroVector;    // 월드 공간 위치
+    float   Radius = 0.f;      // 감쇠가 0이 되는 거리
 
-    int     Type;        // 라이트 타입 구분용 (예: 1 = Point)
-    float   Intensity;   // 밝기
-    float   Attenuation;
-    float   Padding;  // 16바이트 정렬
+    int32   Type = 0;        // 라이트 타입 구분용 (예: 1 = Point)
+    float   Intensity = 0.f;   // 밝기
+    float   Attenuation = 0.f;
+    float   Padding = 0.f;  // 16바이트 정렬
 
     // --- Shadow Info ---
     FMatrix LightViewProjs[6]; // 섀도우맵 생성 시 사용한 VP 행렬
     
-    uint32 CastShadows;
-    float ShadowBias;
+    uint32 CastShadows = 0;
+    float ShadowBias = 0.005f;
     uint32 ShadowMapArrayIndex = 0;
     float Padding2; // 필요시
 };
 
 struct FSpotLightInfo
 {
-    FLinearColor LightColor;         // RGB + alpha
+    FLinearColor LightColor = FLinearColor::White;         // RGB + alpha
 
-    FVector Position;       // 월드 공간 위치
-    float   Radius;         // 감쇠 거리
+    FVector Position = FVector::ZeroVector;       // 월드 공간 위치
+    float   Radius = 0.f;         // 감쇠 거리
 
-    FVector Direction;      // 빛이 향하는 방향 (normalize)
-    float   Intensity;      // 밝기
+    FVector Direction = FVector::ForwardVector;      // 빛이 향하는 방향 (normalize)
+    float   Intensity = 0.f;      // 밝기
 
-    int     Type;           // 라이트 타입 구분용 (예: 2 = Spot)
-    float   InnerRad; // cos(inner angle)
-    float   OuterRad; // cos(outer angle)
-    float   Attenuation;
+    int32   Type = 0;           // 라이트 타입 구분용 (예: 2 = Spot)
+    float   InnerRad = 0.f; // cos(inner angle)
+    float   OuterRad = 0.f; // cos(outer angle)
+    float   Attenuation = 0.f;
 
     // --- Shadow Info ---
     FMatrix LightViewProj; // 섀도우맵 생성 시 사용한 VP 행렬
     
-    uint32 CastShadows;
-    float ShadowBias;
+    uint32 CastShadows = 0;
+    float ShadowBias = 0.005f;
     uint32 ShadowMapArrayIndex;
     float Padding2; // 필요시
 };
