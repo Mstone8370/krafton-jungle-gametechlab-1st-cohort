@@ -94,109 +94,76 @@ void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorView
         LightBufferData.AmbientLightsCount = 1;
     }
 
-    /*
-     * TODO: 아래 단계 진행 전에 어떤 조명이 그림자 맵을 렌더할 지를 결정해야 함.
-     *       cast shadow가 켜져있는 조명 중에서 중요도 기반으로 결정.
-     */
+    const int32 ActiveLightsCount = SelectActiveLights(Viewport);
+    
+    LightBufferData.TotalActiveLightCount = ActiveLightsCount;
+    
+    BufferManager->UpdateConstantBuffer(TEXT("FLightInfoBuffer"), LightBufferData);
+    BufferManager->UpdateStructuredBuffer(TEXT("FLightDataBuffer"), LightData);
+}
 
+int32 FUpdateLightBufferPass::SelectActiveLights(const std::shared_ptr<FEditorViewportClient>& Viewport)
+{
     const int32 PointLightCount = PointLightComps.Num();
     const int32 SpotLightCount = SpotLightComps.Num();
     const int32 TotalLightCount = PointLightCount + SpotLightCount;
     const int32 AvailableLightCount = FMath::Min(MAX_LIGHT, TotalLightCount);
-    LightBufferData.TotalActiveLightCount = AvailableLightCount;
     
-    BufferManager->UpdateConstantBuffer(TEXT("FLightInfoBuffer"), LightBufferData);
+    TArray<FLightCandidate> Candidates;
+    Candidates.Reserve(TotalLightCount);
+    Candidates.SetNum(TotalLightCount);
 
-    if (AvailableLightCount < TotalLightCount)
+    const FVector& ViewLocation = Viewport->GetCameraLocation();
+
+    for (int32 i = 0; i < SpotLightCount; ++i)
     {
-        // 현재 존재하는 조명 개수가 최대 허용 개수를 초과하는 경우.
-        TArray<FLightCandidate> Candidates;
-        Candidates.Reserve(TotalLightCount);
-        Candidates.SetNum(TotalLightCount);
+        const USpotLightComponent* Light = SpotLightComps[i];
 
-        const FVector& ViewLocation = Viewport->GetCameraLocation();
+        const float Distance = FVector::DistSquared(Light->GetComponentLocation(), ViewLocation);
+        const float ScreenRadius = (Light->GetRadius() / Distance) * Viewport->Projection[1][1];
 
-        for (int32 i = 0; i < SpotLightCount; ++i)
+        float Importance = (ScreenRadius * Light->GetIntensity()) / (Distance * 0.1f + 1.f);
+
+        if (Light->GetCastShadows())
         {
-            const USpotLightComponent* Light = SpotLightComps[i];
-
-            const float Distance = FVector::DistSquared(Light->GetComponentLocation(), ViewLocation);
-            const float ScreenRadius = (Light->GetRadius() / Distance) * Viewport->Projection[1][1];
-
-            float Importance = (ScreenRadius * Light->GetIntensity()) / (Distance * 0.1f + 1.f);
-
-            if (Light->GetCastShadows())
-            {
-                Importance *= 10.f;
-            }
-
-            Candidates[i].Importance = Importance;
-            Candidates[i].OriginalIndex = i;
-            Candidates[i].Type = 1;
-        }
-        
-        for (int32 i = 0; i < PointLightCount; ++i)
-        {
-            const int32 TargetIdx = SpotLightCount + i;
-            
-            const UPointLightComponent* Light = PointLightComps[i];
-
-            const float Distance = FVector::DistSquared(Light->GetComponentLocation(), ViewLocation);
-            const float ScreenRadius = (Light->GetRadius() / Distance) * Viewport->Projection[1][1];
-
-            float Importance = (ScreenRadius * Light->GetIntensity()) / (Distance * 0.1f + 1.f);
-
-            if (Light->GetCastShadows())
-            {
-                Importance *= 10.f;
-            }
-
-            Candidates[TargetIdx].Importance = Importance;
-            Candidates[TargetIdx].OriginalIndex = i;
-            Candidates[TargetIdx].Type = 1;
+            Importance *= 10.f;
         }
 
-        std::sort(Candidates.begin(), Candidates.end());
-
-        for (int32 i = 0; i < AvailableLightCount; ++i)
-        {
-            const FLightCandidate& Candidate = Candidates[i];
-            if (Candidate.Type == 0) // SpotLight
-            {
-                const USpotLightComponent* Light = SpotLightComps[Candidate.OriginalIndex]; 
-                const FSpotLightInfo& SpotLightInfo = SpotLightComps[Candidate.OriginalIndex]->GetSpotLightInfo();
-                
-                LightData[i].LightColor = Light->GetLightColor();
-                LightData[i].Location = Light->GetComponentLocation();
-                LightData[i].Radius = Light->GetRadius();
-                LightData[i].Direction = Light->GetForwardVector();
-                LightData[i].Intensity = Light->GetIntensity();
-                LightData[i].UpVector = Light->GetUpVector();
-                LightData[i].ShadowBias = SpotLightInfo.ShadowBias;
-                LightData[i].SpotRadians = FVector2D(Light->GetOuterRad(), Light->GetInnerRad());
-                LightData[i].Type = 0 + (Light->GetCastShadows() ? 1 : 0) * 2;
-                LightData[i].ShadowMapIndex = i;
-            }
-            else // PointLight
-            {
-                const UPointLightComponent* Light = PointLightComps[Candidate.OriginalIndex];
-                FPointLightInfo PointLightInfo = PointLightComps[Candidate.OriginalIndex]->GetPointLightInfo();
-                
-                LightData[i].LightColor = Light->GetLightColor();
-                LightData[i].Location = Light->GetComponentLocation();
-                LightData[i].Radius = Light->GetRadius();
-                LightData[i].Intensity = Light->GetIntensity();
-                LightData[i].ShadowBias = PointLightInfo.ShadowBias;
-                LightData[i].Type = 1 + (Light->GetCastShadows() ? 1 : 0) * 2;
-            }
-        }
+        Candidates[i].Importance = Importance;
+        Candidates[i].OriginalIndex = i;
+        Candidates[i].Type = 0;
     }
-    else
+    
+    for (int32 i = 0; i < PointLightCount; ++i)
     {
-        for (int32 i = 0; i < SpotLightCount; ++i)
+        const int32 TargetIdx = SpotLightCount + i;
+        
+        const UPointLightComponent* Light = PointLightComps[i];
+
+        const float Distance = FVector::DistSquared(Light->GetComponentLocation(), ViewLocation);
+        const float ScreenRadius = (Light->GetRadius() / Distance) * Viewport->Projection[1][1];
+
+        float Importance = (ScreenRadius * Light->GetIntensity()) / (Distance * 0.1f + 1.f);
+
+        if (Light->GetCastShadows())
         {
-            const USpotLightComponent* Light = SpotLightComps[i];
-            const FSpotLightInfo& SpotLightInfo = SpotLightComps[i]->GetSpotLightInfo();
+            Importance *= 10.f;
+        }
+
+        Candidates[TargetIdx].Importance = Importance;
+        Candidates[TargetIdx].OriginalIndex = i;
+        Candidates[TargetIdx].Type = 1;
+    }
+
+    std::sort(Candidates.begin(), Candidates.end());
+
+    for (int32 i = 0; i < AvailableLightCount; ++i)
+    {
+        const FLightCandidate& Candidate = Candidates[i];
+        if (Candidate.Type == 0) // SpotLight
+        {
+            const USpotLightComponent* Light = SpotLightComps[Candidate.OriginalIndex]; 
+            const FSpotLightInfo& SpotLightInfo = SpotLightComps[Candidate.OriginalIndex]->GetSpotLightInfo();
             
             LightData[i].LightColor = Light->GetLightColor();
             LightData[i].Location = Light->GetComponentLocation();
@@ -207,27 +174,23 @@ void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorView
             LightData[i].ShadowBias = SpotLightInfo.ShadowBias;
             LightData[i].SpotRadians = FVector2D(Light->GetOuterRad(), Light->GetInnerRad());
             LightData[i].Type = 0 + (Light->GetCastShadows() ? 1 : 0) * 2;
-            LightData[i].ShadowMapIndex = i;
         }
-        
-        for (int32 i = 0; i < PointLightCount; ++i)
+        else // PointLight
         {
-            const int32 TargetIdx = SpotLightCount + i;
-
-            const UPointLightComponent* Light = PointLightComps[i];
-            const FPointLightInfo& PointLightInfo = PointLightComps[i]->GetPointLightInfo();
+            const UPointLightComponent* Light = PointLightComps[Candidate.OriginalIndex];
+            FPointLightInfo PointLightInfo = PointLightComps[Candidate.OriginalIndex]->GetPointLightInfo();
             
-            LightData[TargetIdx].LightColor = Light->GetLightColor();
-            LightData[TargetIdx].Location = Light->GetComponentLocation();
-            LightData[TargetIdx].Radius = Light->GetRadius();
-            LightData[TargetIdx].Intensity = Light->GetIntensity();
-            LightData[TargetIdx].ShadowBias = PointLightInfo.ShadowBias;
-            LightData[TargetIdx].Type = 1 + (Light->GetCastShadows() ? 1 : 0) * 2;
-            LightData[TargetIdx].ShadowMapIndex = i;
+            LightData[i].LightColor = Light->GetLightColor();
+            LightData[i].Location = Light->GetComponentLocation();
+            LightData[i].Radius = Light->GetRadius();
+            LightData[i].Intensity = Light->GetIntensity();
+            LightData[i].ShadowBias = PointLightInfo.ShadowBias;
+            LightData[i].Type = 1 + (Light->GetCastShadows() ? 1 : 0) * 2;
         }
+        LightData[i].ShadowMapIndex = i < MAX_SHADOW_LIGHT ? i : -1;
     }
 
-    BufferManager->UpdateStructuredBuffer("FLightDataBuffer", LightData);
+    return AvailableLightCount;
 }
 
 float FUpdateLightBufferPass::CalculateLightImportance(const ULightComponentBase* Light, const std::shared_ptr<FEditorViewportClient>& Viewport) const

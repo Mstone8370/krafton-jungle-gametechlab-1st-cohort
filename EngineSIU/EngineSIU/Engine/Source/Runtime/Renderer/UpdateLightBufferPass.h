@@ -23,6 +23,8 @@ public:
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
+    const TArray<FLightData>& GetLightData() const { return LightData; }
+    
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
@@ -32,6 +34,8 @@ protected:
 private:
     void UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
+    int32 SelectActiveLights(const std::shared_ptr<FEditorViewportClient>& Viewport);
+    
     float CalculateLightImportance(const ULightComponentBase* Light, const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     
     TArray<UPointLightComponent*> PointLightComps;
@@ -43,12 +47,13 @@ private:
     TArray<FLightData> LightData;
 
     const int32 MAX_LIGHT = 1024; // 한 씬에 허용하는 최대 조명 개수
+    const int32 MAX_SHADOW_LIGHT = 16;
 
     struct FLightCandidate
     {
-        float Importance;
-        int32 OriginalIndex;
-        int32 Type;
+        float Importance = 0.f;
+        int32 OriginalIndex = -1;
+        int32 Type = -1;
 
         bool operator<(const FLightCandidate& Other) const
         {
