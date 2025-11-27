@@ -34,6 +34,7 @@ protected:
 private:
     void UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport);
 
+    // 씬의 모든 조명 중에서 현재 프레임에 사용 할 조명들을 고르는 작업
     int32 SelectActiveLights(const std::shared_ptr<FEditorViewportClient>& Viewport);
     
     float CalculateLightImportance(const ULightComponentBase* Light, const std::shared_ptr<FEditorViewportClient>& Viewport) const;
@@ -47,7 +48,7 @@ private:
     TArray<FLightData> LightData;
 
     const int32 MAX_LIGHT = 1024; // 한 씬에 허용하는 최대 조명 개수
-    const int32 MAX_SHADOW_LIGHT = 16;
+    const int32 MAX_SHADOW_LIGHT = 16; // TODO: 포인트 라이트와 스팟 라이트를 구분해서 다뤄야 함
 
     struct FLightCandidate
     {

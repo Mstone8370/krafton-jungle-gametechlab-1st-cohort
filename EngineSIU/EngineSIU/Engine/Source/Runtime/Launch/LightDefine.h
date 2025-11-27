@@ -17,9 +17,10 @@ struct FLightData
     FVector UpVector = FVector::UpVector;
     float ShadowBias = 0.005f;
 
-    FVector2D SpotRadians = FVector2D(0.2618f, 0.5236f); // x: Outer, y: Inner
-    /*
-     * 0: SpotLight (no shadow),   1: PointLight (no shadow),
+    // x: Outer, y: Inner
+    FVector2D SpotRadians = FVector2D(0.2618f, 0.5236f); 
+    /**
+     * 0: SpotLight (no shadow),   1: PointLight (no shadow),\n
      * 2: SpotLight (cast shadow), 3: PointLight (cast shadow)
      */
     uint32 Type = 0; 

@@ -326,6 +326,11 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 
 void FRenderer::RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
+    /**
+     * TODO: 프러스텀 컬링 우선으로 진행. 이후 다른 렌더 패스에서 PrepareRenderArr 과정도 프러스텀 컬링 결과를 받도록 로직을 교체해야 함.
+     *       셰도우 맵 렌더의 경우 조명에 따라 별도로 컬링 진행
+     */
+    
     const uint64 ShowFlag = Viewport->GetShowFlag();
     if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
     {

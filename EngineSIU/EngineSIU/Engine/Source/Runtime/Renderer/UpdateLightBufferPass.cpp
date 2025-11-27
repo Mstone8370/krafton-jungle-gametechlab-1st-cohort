@@ -108,7 +108,8 @@ int32 FUpdateLightBufferPass::SelectActiveLights(const std::shared_ptr<FEditorVi
     const int32 SpotLightCount = SpotLightComps.Num();
     const int32 TotalLightCount = PointLightCount + SpotLightCount;
     const int32 AvailableLightCount = FMath::Min(MAX_LIGHT, TotalLightCount);
-    
+
+    // 모든 조명을 이번 프레임에 렌더 할 때 사용할 후보로 담아 둠
     TArray<FLightCandidate> Candidates;
     Candidates.Reserve(TotalLightCount);
     Candidates.SetNum(TotalLightCount);
@@ -155,39 +156,60 @@ int32 FUpdateLightBufferPass::SelectActiveLights(const std::shared_ptr<FEditorVi
         Candidates[TargetIdx].Type = 1;
     }
 
+    // 우선 순위에 따라 정렬
     std::sort(Candidates.begin(), Candidates.end());
 
+    // 우선 순위에 따라 최대 크기가 제한된 배열에 조명 정보 저장
+    int32 ShadowMapIndex = 0;
     for (int32 i = 0; i < AvailableLightCount; ++i)
     {
         const FLightCandidate& Candidate = Candidates[i];
+
+        bool bCastShadow = false;
+                
         if (Candidate.Type == 0) // SpotLight
         {
             const USpotLightComponent* Light = SpotLightComps[Candidate.OriginalIndex]; 
             const FSpotLightInfo& SpotLightInfo = SpotLightComps[Candidate.OriginalIndex]->GetSpotLightInfo();
+
+            bCastShadow = Light->GetCastShadows();
             
             LightData[i].LightColor = Light->GetLightColor();
             LightData[i].Location = Light->GetComponentLocation();
             LightData[i].Radius = Light->GetRadius();
-            LightData[i].Direction = Light->GetForwardVector();
             LightData[i].Intensity = Light->GetIntensity();
-            LightData[i].UpVector = Light->GetUpVector();
             LightData[i].ShadowBias = SpotLightInfo.ShadowBias;
+            // Begin SpotLight
+            LightData[i].Direction = Light->GetForwardVector();
+            LightData[i].UpVector = Light->GetUpVector();
             LightData[i].SpotRadians = FVector2D(Light->GetOuterRad(), Light->GetInnerRad());
-            LightData[i].Type = 0 + (Light->GetCastShadows() ? 1 : 0) * 2;
+            // End SpotLight
+            LightData[i].Type = 0;
         }
         else // PointLight
         {
             const UPointLightComponent* Light = PointLightComps[Candidate.OriginalIndex];
             FPointLightInfo PointLightInfo = PointLightComps[Candidate.OriginalIndex]->GetPointLightInfo();
             
+            bCastShadow = Light->GetCastShadows();
+            
             LightData[i].LightColor = Light->GetLightColor();
             LightData[i].Location = Light->GetComponentLocation();
             LightData[i].Radius = Light->GetRadius();
             LightData[i].Intensity = Light->GetIntensity();
             LightData[i].ShadowBias = PointLightInfo.ShadowBias;
-            LightData[i].Type = 1 + (Light->GetCastShadows() ? 1 : 0) * 2;
+            LightData[i].Type = 1;
         }
-        LightData[i].ShadowMapIndex = i < MAX_SHADOW_LIGHT ? i : -1;
+
+        // 조명이 그림자를 드리우고 셰도우 맵을 렌더 가능한 조명의 개수에 여유가 있을 때, 조명 타입과 셰도우 맵의 인덱스 지정
+        LightData[i].ShadowMapIndex = -1;
+        if (bCastShadow && ShadowMapIndex < MAX_SHADOW_LIGHT)
+        {
+            LightData[i].Type += 2;
+            LightData[i].ShadowMapIndex = ShadowMapIndex;
+            
+            ++ShadowMapIndex;
+        }
     }
 
     return AvailableLightCount;
