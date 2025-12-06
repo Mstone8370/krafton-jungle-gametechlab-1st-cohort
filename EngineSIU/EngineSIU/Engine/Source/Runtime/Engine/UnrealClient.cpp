@@ -70,21 +70,7 @@ void FViewportResource::Resize(uint32 NewWidth, uint32 NewHeight)
     D3DViewport.Height = static_cast<float>(NewHeight);
     D3DViewport.Width = static_cast<float>(NewWidth);
 
-    for (auto& [Type, Item] : DepthStencils)
-    {
-        for (auto& [DownSampleScale, Resource] : Item)
-        {
-            CreateDepthStencil(Type, DownSampleScale);
-        }
-    }
-
-    for (auto& [Type, Item] : RenderTargets)
-    {
-        for (auto& [DownSampleScale, Resource] : Item)
-        {
-            CreateRenderTarget(Type, DownSampleScale);
-        }
-    }
+    // 이후 GetRenderTarget 또는 GetDepthStencil 호출 시 리소스 자동으로 생성
 }
 
 void FViewportResource::Release()
