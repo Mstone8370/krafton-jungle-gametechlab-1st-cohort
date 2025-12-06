@@ -27,7 +27,7 @@ RabbitCamera::~RabbitCamera()
     ReleasePictures();
 }
 
-FRenderTargetRHI* RabbitCamera::CopySource(FRenderTargetRHI* InputRHI)
+FRenderTargetRHI* RabbitCamera::CopySource(const FRenderTargetRHI* InputRHI)
 {
     auto Device = GEngineLoop.GraphicDevice.Device;
     auto DeviceContext = GEngineLoop.GraphicDevice.DeviceContext;
@@ -62,7 +62,7 @@ FRenderTargetRHI* RabbitCamera::CopySource(FRenderTargetRHI* InputRHI)
     }
 
     // 4. 원본 텍스처 내용을 새 텍스처로 복사 (GPU 상에서 깊은 복사)
-    DeviceContext->CopyResource(destination->Texture2D, InputRHI->Texture2D);
+    DeviceContext->CopyResource(destination->Texture2D.Get(), InputRHI->Texture2D.Get());
 
     // 5. 새로 복사된 텍스처에 대한 SRV 생성
     if (destination->Texture2D)
@@ -73,10 +73,10 @@ FRenderTargetRHI* RabbitCamera::CopySource(FRenderTargetRHI* InputRHI)
         srvDesc.Texture2D.MostDetailedMip = 0;
         srvDesc.Texture2D.MipLevels = (texDesc.MipLevels == 0) ? -1 : texDesc.MipLevels; // 모든 밉 레벨 또는 명시적 값
 
-        hr = GEngineLoop.GraphicDevice.Device->CreateShaderResourceView(destination->Texture2D, &srvDesc, &destination->SRV);
+        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(destination->Texture2D.Get(), &srvDesc, &destination->SRV);
         if (FAILED(hr))
         {
-            destination->Release(); // Texture2D 해제 포함
+            // destination->Release(); // Texture2D 해제 포함
             delete destination;
             return nullptr;
         }
@@ -95,7 +95,7 @@ FRenderTargetRHI* RabbitCamera::CopySource(FRenderTargetRHI* InputRHI)
 
 FRenderTargetRHI* RabbitCamera::CaptureFrame()
 {
-    auto Source = GEngineLoop.GetLevelEditor()
+    const FRenderTargetRHI* Source = GEngineLoop.GetLevelEditor()
         ->GetActiveViewportClient()
         ->GetViewportResource()
         ->GetRenderTarget(EResourceType::ERT_DepthOfField_Result);
@@ -153,7 +153,7 @@ void RabbitCamera::ReleasePictures()
     {
         if (Picture)
         {
-            Picture->Release();
+            //Picture->Release();
         }
     }
 

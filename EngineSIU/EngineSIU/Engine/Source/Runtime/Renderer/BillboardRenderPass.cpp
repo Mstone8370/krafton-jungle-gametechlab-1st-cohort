@@ -121,7 +121,8 @@ void FBillboardRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportCl
     const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
     const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
 
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+    ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, DepthStencilRHI->DSV.Get());
 
     Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetViewportResource()->GetD3DViewport());
 

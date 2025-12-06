@@ -54,7 +54,7 @@ public:
     void SetOwner(AActor* InOwner) { OwnerActor = InOwner; }
 
 private:
-    FRenderTargetRHI* CopySource(FRenderTargetRHI* InputRHI);
+    FRenderTargetRHI* CopySource(const FRenderTargetRHI* InputRHI);
     FRenderTargetRHI* CaptureFrame();
     UPrimitiveComponent* CheckSubject();
     void TriggerShutterEffect();

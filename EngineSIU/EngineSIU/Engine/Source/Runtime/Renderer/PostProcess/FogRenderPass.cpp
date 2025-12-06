@@ -90,12 +90,14 @@ void FFogRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewpo
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     const EResourceType ResourceType = EResourceType::ERT_Scene; 
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
 
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, nullptr);
+    ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
     Graphics->DeviceContext->OMSetBlendState(Graphics->BlendState_AlphaBlend, nullptr, 0xffffffff);
 
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, &ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->SRV);
+    ID3D11ShaderResourceView* SRV = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene)->SRV.Get();
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, &SRV);
     
     UpdateShader();
 

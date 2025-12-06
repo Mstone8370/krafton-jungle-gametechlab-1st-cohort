@@ -33,20 +33,29 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     }
 
     const EResourceType ResourceType = EResourceType::ERT_Compositing; 
-    FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
+    const FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
 
     Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetD3DViewport());
-
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_Scene)->SRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Translucent), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_Translucent)->SRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PostProcess), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_Result)->SRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Editor), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_Editor)->SRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_EditorOverlay), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_EditorOverlay)->SRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_CameraEffect), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_PP_CameraEffect)->SRV);
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_CameraW13), 1, &ViewportResource->GetRenderTarget(EResourceType::ERT_CameraW13)->SRV);
     
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, nullptr);
-    Graphics->DeviceContext->ClearRenderTargetView(RenderTargetRHI->RTV, ViewportResource->GetClearColor(ResourceType).data());
+    ID3D11ShaderResourceView* SceneSRV = ViewportResource->GetRenderTarget(EResourceType::ERT_Scene)->SRV.Get();
+    ID3D11ShaderResourceView* TranslucentSRV = ViewportResource->GetRenderTarget(EResourceType::ERT_Translucent)->SRV.Get();
+    ID3D11ShaderResourceView* DepthOfViewSRV = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_Result)->SRV.Get();
+    ID3D11ShaderResourceView* EditorSRV = ViewportResource->GetRenderTarget(EResourceType::ERT_Editor)->SRV.Get();
+    ID3D11ShaderResourceView* EditorOverlaySRV = ViewportResource->GetRenderTarget(EResourceType::ERT_EditorOverlay)->SRV.Get();
+    ID3D11ShaderResourceView* CameraEffectSRV = ViewportResource->GetRenderTarget(EResourceType::ERT_PP_CameraEffect)->SRV.Get();
+    ID3D11ShaderResourceView* CameraW13SRV = ViewportResource->GetRenderTarget(EResourceType::ERT_CameraW13)->SRV.Get();
+
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &SceneSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Translucent), 1, &TranslucentSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_PostProcess), 1, &DepthOfViewSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Editor), 1, &EditorSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_EditorOverlay), 1, &EditorOverlaySRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_CameraEffect), 1, &CameraEffectSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_CameraW13), 1, &CameraW13SRV);
+    
+    ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+    Graphics->DeviceContext->ClearRenderTargetView(RTV, ViewportResource->GetClearColor(ResourceType).data());
 
     Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

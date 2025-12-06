@@ -94,9 +94,10 @@ void FCameraEffectRenderPass::PrepareRender(const std::shared_ptr<FEditorViewpor
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     const EResourceType ResourceType = EResourceType::ERT_PP_CameraEffect;
-    FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
     
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, nullptr);
+    ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
     
     Graphics->DeviceContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
     Graphics->DeviceContext->IASetInputLayout(nullptr);

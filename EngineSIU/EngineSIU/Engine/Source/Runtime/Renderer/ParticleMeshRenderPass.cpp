@@ -90,7 +90,8 @@ void FParticleMeshRenderPass::PrepareRender(const std::shared_ptr<FEditorViewpor
     const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
     const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
 
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, DepthStencilRHI->DSV);
+    ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, DepthStencilRHI->DSV.Get());
 
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);

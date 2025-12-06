@@ -1,8 +1,11 @@
 #pragma once
 #include "Define.h" 
 #include <d3d11.h>
+#include <wrl/client.h>
 
 #include "Container/Map.h"
+
+using Microsoft::WRL::ComPtr;
 
 class FViewportResource;
 
@@ -59,54 +62,16 @@ enum class EDownSampleScale : uint8
 
 struct FRenderTargetRHI
 {
-    ID3D11Texture2D* Texture2D = nullptr;
-    ID3D11RenderTargetView* RTV = nullptr;
-    ID3D11ShaderResourceView* SRV = nullptr;
-     
-    void Release()
-    {
-        if (SRV)
-        {
-            SRV->Release();
-            SRV = nullptr;
-        }
-        if (RTV)
-        {
-            RTV->Release();
-            RTV = nullptr;
-        }
-        if (Texture2D)
-        {
-            Texture2D->Release();
-            Texture2D = nullptr;
-        }
-    }
+    ComPtr<ID3D11Texture2D> Texture2D;
+    ComPtr<ID3D11RenderTargetView> RTV;
+    ComPtr<ID3D11ShaderResourceView> SRV;
 };
 
 struct FDepthStencilRHI
 {
-    ID3D11Texture2D* Texture2D = nullptr;
-    ID3D11DepthStencilView* DSV = nullptr;
-    ID3D11ShaderResourceView* SRV = nullptr;
-
-    void Release()
-    {
-        if (SRV)
-        {
-            SRV->Release();
-            SRV = nullptr;
-        }
-        if (DSV)
-        {
-            DSV->Release();
-            DSV = nullptr;
-        }
-        if (Texture2D)
-        {
-            Texture2D->Release();
-            Texture2D = nullptr;
-        }
-    }
+    ComPtr<ID3D11Texture2D> Texture2D;
+    ComPtr<ID3D11DepthStencilView> DSV;
+    ComPtr<ID3D11ShaderResourceView> SRV;
 };
 
 class FViewportResource
@@ -128,7 +93,7 @@ public:
     HRESULT CreateDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
     
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
-    FDepthStencilRHI* GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+    const FDepthStencilRHI* GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
 
     bool HasDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None) const;
 
@@ -145,7 +110,7 @@ public:
     HRESULT CreateRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
     
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
-    FRenderTargetRHI* GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+    const FRenderTargetRHI* GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
 
     bool HasRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None) const;
 

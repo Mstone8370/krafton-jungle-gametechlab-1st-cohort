@@ -92,9 +92,10 @@ void FSlateRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& View
 
     // 렌더 준비
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FRenderTargetRHI* Resource = ViewportResource->GetRenderTarget(EResourceType::ERT_Compositing);
+    const FRenderTargetRHI* Resource = ViewportResource->GetRenderTarget(EResourceType::ERT_Compositing);
 
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Viewport), 1, &Resource->SRV);
+    ID3D11ShaderResourceView* SRV = Resource->SRV.Get();
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Viewport), 1, &SRV);
 
     ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"SlateShader");
     ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"SlateShader");

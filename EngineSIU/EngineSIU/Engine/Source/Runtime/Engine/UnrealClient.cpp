@@ -120,7 +120,8 @@ HRESULT FViewportResource::CreateDepthStencil(EResourceType Type, EDownSampleSca
     DepthStencilTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
     DepthStencilTextureDesc.CPUAccessFlags = 0;
     DepthStencilTextureDesc.MiscFlags = 0;
-    hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&DepthStencilTextureDesc, nullptr, &NewResource.Texture2D);
+    
+    hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&DepthStencilTextureDesc, nullptr, NewResource.Texture2D.GetAddressOf());
     if (FAILED(hr))
     {
         return hr;
@@ -130,7 +131,7 @@ HRESULT FViewportResource::CreateDepthStencil(EResourceType Type, EDownSampleSca
     DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
     DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     DepthStencilViewDesc.Texture2D.MipSlice = 0;
-    hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D,  &DepthStencilViewDesc,  &NewResource.DSV);
+    hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D.Get(),  &DepthStencilViewDesc,  &NewResource.DSV);
     if (FAILED(hr))
     {
         return hr;
@@ -141,7 +142,7 @@ HRESULT FViewportResource::CreateDepthStencil(EResourceType Type, EDownSampleSca
     DepthStencilDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     DepthStencilDesc.Texture2D.MostDetailedMip = 0;
     DepthStencilDesc.Texture2D.MipLevels = 1;
-    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D, &DepthStencilDesc, &NewResource.SRV);
+    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D.Get(), &DepthStencilDesc, &NewResource.SRV);
     if (FAILED(hr))
     {
         return hr;
@@ -152,7 +153,7 @@ HRESULT FViewportResource::CreateDepthStencil(EResourceType Type, EDownSampleSca
     return hr;
 }
 
-FDepthStencilRHI* FViewportResource::GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale)
+const FDepthStencilRHI* FViewportResource::GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale)
 {
     if (!HasDepthStencil(Type, DownSampleScale))
     {
@@ -184,9 +185,9 @@ void FViewportResource::ClearDepthStencil(ID3D11DeviceContext* DeviceContext, ER
 {
     if (HasDepthStencil(Type, DownSampleScale))
     {
-        if (FDepthStencilRHI* Resource = GetDepthStencil(Type, DownSampleScale))
+        if (const FDepthStencilRHI* Resource = GetDepthStencil(Type, DownSampleScale))
         {
-            DeviceContext->ClearDepthStencilView(Resource->DSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+            DeviceContext->ClearDepthStencilView(Resource->DSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
         }
     }
 }
@@ -214,12 +215,17 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
     TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
     TextureDesc.CPUAccessFlags = 0;
     TextureDesc.MiscFlags = 0;
-    NewResource.Texture2D = FEngineLoop::GraphicDevice.CreateTexture2D(TextureDesc, nullptr);
-
+    
+    hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&TextureDesc, nullptr, NewResource.Texture2D.GetAddressOf());
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    
     D3D11_RENDER_TARGET_VIEW_DESC RTVDesc = {};
     RTVDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
     RTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-    hr = FEngineLoop::GraphicDevice.Device->CreateRenderTargetView(NewResource.Texture2D, &RTVDesc, &NewResource.RTV);
+    hr = FEngineLoop::GraphicDevice.Device->CreateRenderTargetView(NewResource.Texture2D.Get(), &RTVDesc, &NewResource.RTV);
     if (FAILED(hr))
     {
         return hr;
@@ -230,7 +236,7 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
     SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     SRVDesc.Texture2D.MostDetailedMip = 0;
     SRVDesc.Texture2D.MipLevels = 1;
-    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D, &SRVDesc, &NewResource.SRV);
+    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D.Get(), &SRVDesc, &NewResource.SRV);
     if (FAILED(hr))
     {
         return hr;
@@ -241,7 +247,7 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
     return hr;
 }
 
-FRenderTargetRHI* FViewportResource::GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale)
+const FRenderTargetRHI* FViewportResource::GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale)
 {
     if (!HasRenderTarget(Type, DownSampleScale))
     {
@@ -273,9 +279,9 @@ void FViewportResource::ClearRenderTarget(ID3D11DeviceContext* DeviceContext, ER
 {
     if (HasRenderTarget(Type, DownSampleScale))
     {
-        if (FRenderTargetRHI* Resource = GetRenderTarget(Type, DownSampleScale))
+        if (const FRenderTargetRHI* Resource = GetRenderTarget(Type, DownSampleScale))
         {
-            DeviceContext->ClearRenderTargetView(Resource->RTV, ClearColors[Type].data());
+            DeviceContext->ClearRenderTargetView(Resource->RTV.Get(), ClearColors[Type].data());
         }
     }
 }
@@ -293,32 +299,25 @@ void FViewportResource::ReleaseAllResources()
 {
     for (auto& [Type, Item] : RenderTargets)
     {
-        for (auto& [Scale, Resource] : Item)
-        {
-            Resource.Release();
-        }
+        Item.Empty();
     }
+    RenderTargets.Empty();
     for (auto& [Type, Item] : DepthStencils)
     {
-        for (auto& [Scale, Resource] : Item)
-        {
-            Resource.Release();
-        }
+        Item.Empty();
     }
+    DepthStencils.Empty();
 }
 
 void FViewportResource::ReleaseDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale)
 {
     if (HasDepthStencil(Type, DownSampleScale))
     {
-        DepthStencils[Type][DownSampleScale].Release();
+        DepthStencils[Type].Remove(DownSampleScale);
     }
     else if (DownSampleScale == EDownSampleScale::DSS_MAX)
     {
-        for (auto& [Key, Resource] : DepthStencils[Type])
-        {
-            Resource.Release();
-        }
+        DepthStencils[Type].Empty();
     }
 }
 
@@ -326,14 +325,11 @@ void FViewportResource::ReleaseRenderTarget(EResourceType Type, EDownSampleScale
 {
     if (HasRenderTarget(Type, DownSampleScale))
     {
-        RenderTargets[Type][DownSampleScale].Release();
+        RenderTargets[Type].Remove(DownSampleScale);
     }
     else if (DownSampleScale == EDownSampleScale::DSS_MAX)
     {
-        for (auto& [Key, Resource] : RenderTargets[Type])
-        {
-            Resource.Release();
-        }
+        RenderTargets[Type].Empty();
     }
 }
 

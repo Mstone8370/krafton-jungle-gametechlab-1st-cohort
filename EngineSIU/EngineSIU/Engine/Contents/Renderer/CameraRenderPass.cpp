@@ -122,8 +122,9 @@ void FCameraRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 void FCameraRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     constexpr EResourceType ResourceType = EResourceType::ERT_CameraW13; 
-    FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RenderTargetRHI->RTV, nullptr);
+    const FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
+    ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
     
     Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
     Graphics->DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

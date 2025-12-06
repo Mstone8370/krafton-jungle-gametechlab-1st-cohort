@@ -71,9 +71,9 @@ void FDepthPrePass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& 
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Debug);
+    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Debug);
 
-    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DepthStencilRHI->DSV); // ← 깊이 전용
+    Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DepthStencilRHI->DSV.Get()); // ← 깊이 전용
 
     BufferManager->BindStructuredBufferSRV(TEXT("BoneBuffer"), 1, EShaderStage::Vertex);
     BufferManager->BindConstantBuffer(TEXT("FCPUSkinningConstants"), 2, EShaderStage::Vertex);

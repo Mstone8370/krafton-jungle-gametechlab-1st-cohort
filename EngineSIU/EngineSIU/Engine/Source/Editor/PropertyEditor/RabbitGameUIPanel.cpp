@@ -388,7 +388,7 @@ void RabbitGameUIPanel::RenderGallery()
 
         const FRenderTargetRHI* picturePtr = (slotIdx < Pictures.Num()) ? Pictures[slotIdx] : nullptr;
         ImTextureID baseTexture = picturePtr && picturePtr->SRV
-            ? reinterpret_cast<ImTextureID>(picturePtr->SRV)
+            ? reinterpret_cast<ImTextureID>(picturePtr->SRV.Get())
             : OverlayIcons[slotIdx]; // 없으면 아이콘으로 대체
 
         if (baseTexture)
@@ -456,7 +456,7 @@ void RabbitGameUIPanel::RenderGallery()
 
             ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + cursorX, ImGui::GetCursorPos().y + cursorY));
             
-            ImGui::Image(reinterpret_cast<ImTextureID>(selectedPicture->SRV), ImVec2(DisplayWidth, DisplayHeight));
+            ImGui::Image(reinterpret_cast<ImTextureID>(selectedPicture->SRV.Get()), ImVec2(DisplayWidth, DisplayHeight));
 
             if (ImGui::Button("Close"))
             {
