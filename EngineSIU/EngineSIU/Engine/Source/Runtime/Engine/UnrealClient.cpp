@@ -326,14 +326,13 @@ FViewport::FViewport()
 }
 
 FViewport::FViewport(EViewScreenLocation InViewLocation)
-    : ViewportResource(new FViewportResource())
+    : ViewportResource(std::make_unique<FViewportResource>())
     , ViewLocation(InViewLocation) 
 {
 }
 
 FViewport::~FViewport()
 {
-    delete ViewportResource;
 }
 
 void FViewport::Initialize(const FRect& InRect)

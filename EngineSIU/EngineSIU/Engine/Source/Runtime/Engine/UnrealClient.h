@@ -125,6 +125,12 @@ public:
     ////////
     std::array<float, 4> GetClearColor(EResourceType Type) const;
     
+    FViewportResource(const FViewportResource&) = delete;
+    FViewportResource& operator=(const FViewportResource&) = delete;
+    
+    FViewportResource(FViewportResource&&) = delete;
+    FViewportResource& operator=(FViewportResource&&) = delete;
+    
 private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
@@ -159,14 +165,14 @@ public:
 
     EViewScreenLocation GetViewLocation() const { return ViewLocation; }
 
-    FViewportResource* GetViewportResource() const { return ViewportResource; }
+    FViewportResource* GetViewportResource() const { return ViewportResource.get(); }
 
     FRect GetRect() const { return Rect; }
 
     bool bIsHovered(const FVector2D& InPoint) const;
 
 private:
-    FViewportResource* ViewportResource;
+    std::unique_ptr<FViewportResource> ViewportResource;
 
     EViewScreenLocation ViewLocation;   // 뷰포트 위치
 
