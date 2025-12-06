@@ -57,8 +57,8 @@ void FGizmoRenderPass::UpdateShader()
 void FGizmoRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_EditorOverlay);
-    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Gizmo);
+    const FRenderTargetResource* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_EditorOverlay);
+    const FDepthStencilResource* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Gizmo);
     
     ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, DepthStencilRHI->DSV.Get());

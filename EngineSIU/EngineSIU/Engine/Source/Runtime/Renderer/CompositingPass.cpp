@@ -33,7 +33,7 @@ void FCompositingPass::Render(const std::shared_ptr<FEditorViewportClient>& View
     }
 
     const EResourceType ResourceType = EResourceType::ERT_Compositing; 
-    const FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
+    const FRenderTargetResource* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
 
     Graphics->DeviceContext->RSSetViewports(1, &Viewport->GetD3DViewport());
     

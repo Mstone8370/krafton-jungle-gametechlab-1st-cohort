@@ -60,14 +60,14 @@ enum class EDownSampleScale : uint8
     DSS_MAX  = UINT8_MAX,
 };
 
-struct FRenderTargetRHI
+struct FRenderTargetResource
 {
     ComPtr<ID3D11Texture2D> Texture2D;
     ComPtr<ID3D11RenderTargetView> RTV;
     ComPtr<ID3D11ShaderResourceView> SRV;
 };
 
-struct FDepthStencilRHI
+struct FDepthStencilResource
 {
     ComPtr<ID3D11Texture2D> Texture2D;
     ComPtr<ID3D11DepthStencilView> DSV;
@@ -93,7 +93,7 @@ public:
     HRESULT CreateDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
     
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
-    const FDepthStencilRHI* GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+    const FDepthStencilResource* GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
 
     bool HasDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None) const;
 
@@ -110,7 +110,7 @@ public:
     HRESULT CreateRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
     
     // 해당 타입의 리소스를 리턴. 없는 경우에는 생성해서 리턴.
-    const FRenderTargetRHI* GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+    const FRenderTargetResource* GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
 
     bool HasRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None) const;
 
@@ -129,8 +129,8 @@ private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
 
-    TMap<EResourceType, TMap<EDownSampleScale, FDepthStencilRHI>> DepthStencils;
-    TMap<EResourceType, TMap<EDownSampleScale, FRenderTargetRHI>> RenderTargets;
+    TMap<EResourceType, TMap<EDownSampleScale, FDepthStencilResource>> DepthStencils;
+    TMap<EResourceType, TMap<EDownSampleScale, FRenderTargetResource>> RenderTargets;
 
     void ReleaseAllResources();
     void ReleaseDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_MAX);

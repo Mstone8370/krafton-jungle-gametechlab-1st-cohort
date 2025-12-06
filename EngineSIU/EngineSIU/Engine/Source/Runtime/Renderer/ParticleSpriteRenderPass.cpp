@@ -91,8 +91,8 @@ void FParticleSpriteRenderPass::PrepareRender(const std::shared_ptr<FEditorViewp
         return;
     }
     
-    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_Translucent);
-    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
+    const FRenderTargetResource* RenderTargetRHI = ViewportResource->GetRenderTarget(EResourceType::ERT_Translucent);
+    const FDepthStencilResource* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
 
     ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, DepthStencilRHI->DSV.Get());

@@ -172,8 +172,8 @@ void FOpaqueRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
 
     const EResourceType ResourceType = EResourceType::ERT_Scene;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+    const FRenderTargetResource* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    const FDepthStencilResource* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
 
     ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, DepthStencilRHI->DSV.Get());

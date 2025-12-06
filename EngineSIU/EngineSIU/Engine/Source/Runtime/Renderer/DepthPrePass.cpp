@@ -71,7 +71,7 @@ void FDepthPrePass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& 
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 1);
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Debug);
+    const FDepthStencilResource* DepthStencilRHI = ViewportResource->GetDepthStencil(EResourceType::ERT_Debug);
 
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, DepthStencilRHI->DSV.Get()); // ← 깊이 전용
 

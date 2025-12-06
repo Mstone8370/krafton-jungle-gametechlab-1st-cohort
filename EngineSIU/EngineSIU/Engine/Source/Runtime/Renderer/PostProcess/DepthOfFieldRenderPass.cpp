@@ -39,7 +39,7 @@ void FDepthOfFieldRenderPass::Render(const std::shared_ptr<FEditorViewportClient
     CleanUpLayerPass(Viewport);
 
     // 이 이후로는 LayerInfo가 항상 바인딩 되어있음.
-    const FRenderTargetRHI* RenderTargetRHI_LayerInfo = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_LayerInfo);
+    const FRenderTargetResource* RenderTargetRHI_LayerInfo = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_LayerInfo);
     ID3D11ShaderResourceView* SRV = RenderTargetRHI_LayerInfo->SRV.Get();
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DepthOfField_LayerInfo), 1, &SRV);
 
@@ -172,12 +172,12 @@ void FDepthOfFieldRenderPass::CreateResource()
 void FDepthOfFieldRenderPass::PrepareLayerPass(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI_DepthOfFieldLayer = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_LayerInfo);
+    const FRenderTargetResource* RenderTargetRHI_DepthOfFieldLayer = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_LayerInfo);
     
     ID3D11RenderTargetView* RTV = RenderTargetRHI_DepthOfFieldLayer->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
 
-    const FDepthStencilRHI* DepthStencilRHI_Scene = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
+    const FDepthStencilResource* DepthStencilRHI_Scene = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
     ID3D11ShaderResourceView* SRV = DepthStencilRHI_Scene->SRV.Get();
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, &SRV);
 
@@ -232,7 +232,7 @@ void FDepthOfFieldRenderPass::CleanUpLayerPass(const std::shared_ptr<FEditorView
 void FDepthOfFieldRenderPass::PrepareMaxFilter_Near(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI_Target = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp1);
+    const FRenderTargetResource* RenderTargetRHI_Target = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp1);
     ID3D11RenderTargetView* RTV = RenderTargetRHI_Target->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
 
@@ -258,11 +258,11 @@ void FDepthOfFieldRenderPass::CleanUpMaxFilter_Near(const std::shared_ptr<FEdito
 void FDepthOfFieldRenderPass::PrepareCoCBlur(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI_Target = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp2);
+    const FRenderTargetResource* RenderTargetRHI_Target = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp2);
     ID3D11RenderTargetView* RTV = RenderTargetRHI_Target->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
 
-    const FRenderTargetRHI* RenderTargetRHI_Filtered = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp1);
+    const FRenderTargetResource* RenderTargetRHI_Filtered = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp1);
     ID3D11ShaderResourceView* SRV = RenderTargetRHI_Filtered->SRV.Get();
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_DepthOfField_FilteredCoC), 1, &SRV);
 
@@ -293,12 +293,12 @@ void FDepthOfFieldRenderPass::CleanUpCoCBlur(const std::shared_ptr<FEditorViewpo
 void FDepthOfFieldRenderPass::PrepareDownSample(const std::shared_ptr<FEditorViewportClient>& Viewport, bool bNear)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI_Target = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp1, EDownSampleScale::DSS_2x);
+    const FRenderTargetResource* RenderTargetRHI_Target = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp1, EDownSampleScale::DSS_2x);
     ID3D11RenderTargetView* RTV = RenderTargetRHI_Target->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
 
-    const FRenderTargetRHI* RenderTargetRHI_Scene = ViewportResource->GetRenderTarget(EResourceType::ERT_Scene);
-    const FRenderTargetRHI* RenderTargetRHI_BlurredCoC = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp2);
+    const FRenderTargetResource* RenderTargetRHI_Scene = ViewportResource->GetRenderTarget(EResourceType::ERT_Scene);
+    const FRenderTargetResource* RenderTargetRHI_BlurredCoC = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp2);
     ID3D11ShaderResourceView* SRV_Scene = RenderTargetRHI_Scene->SRV.Get();
     ID3D11ShaderResourceView* SRV_BlurredCoC = RenderTargetRHI_BlurredCoC->SRV.Get();
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &SRV_Scene);
@@ -340,11 +340,11 @@ void FDepthOfFieldRenderPass::PrepareBlur(const std::shared_ptr<FEditorViewportC
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     const EResourceType RenderTargetType = bNear ? EResourceType::ERT_DepthOfField_LayerNear : EResourceType::ERT_DepthOfField_LayerFar;
-    const FRenderTargetRHI* RenderTargetRHI_Target = ViewportResource->GetRenderTarget(RenderTargetType, EDownSampleScale::DSS_2x);
+    const FRenderTargetResource* RenderTargetRHI_Target = ViewportResource->GetRenderTarget(RenderTargetType, EDownSampleScale::DSS_2x);
     ID3D11RenderTargetView* RTV = RenderTargetRHI_Target->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
 
-    const FRenderTargetRHI* RenderTargetRHI_LayerDownSample = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp1, EDownSampleScale::DSS_2x);
+    const FRenderTargetResource* RenderTargetRHI_LayerDownSample = ViewportResource->GetRenderTarget(EResourceType::ERT_Temp1, EDownSampleScale::DSS_2x);
     ID3D11ShaderResourceView* SRV = RenderTargetRHI_LayerDownSample->SRV.Get();
     Graphics->DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_Scene), 1, &SRV);
     
@@ -374,13 +374,13 @@ void FDepthOfFieldRenderPass::CleanUpBlur(const std::shared_ptr<FEditorViewportC
 void FDepthOfFieldRenderPass::PrepareComposite(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI_PostProcess = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_Result);
+    const FRenderTargetResource* RenderTargetRHI_PostProcess = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_Result);
     ID3D11RenderTargetView* RTV = RenderTargetRHI_PostProcess->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
     
-    const FRenderTargetRHI* RenderTargetRHI_Scene = ViewportResource->GetRenderTarget(EResourceType::ERT_Scene);
-    const FRenderTargetRHI* RenderTargetRHI_BlurNear = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_LayerNear, EDownSampleScale::DSS_2x);
-    const FRenderTargetRHI* RenderTargetRHI_BlurFar = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_LayerFar, EDownSampleScale::DSS_2x);
+    const FRenderTargetResource* RenderTargetRHI_Scene = ViewportResource->GetRenderTarget(EResourceType::ERT_Scene);
+    const FRenderTargetResource* RenderTargetRHI_BlurNear = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_LayerNear, EDownSampleScale::DSS_2x);
+    const FRenderTargetResource* RenderTargetRHI_BlurFar = ViewportResource->GetRenderTarget(EResourceType::ERT_DepthOfField_LayerFar, EDownSampleScale::DSS_2x);
     ID3D11ShaderResourceView* SRV_Scene = RenderTargetRHI_Scene->SRV.Get();
     ID3D11ShaderResourceView* SRV_BlurNear = RenderTargetRHI_BlurNear->SRV.Get();
     ID3D11ShaderResourceView* SRV_BlurFar = RenderTargetRHI_BlurFar->SRV.Get();

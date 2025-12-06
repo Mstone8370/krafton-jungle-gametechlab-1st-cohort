@@ -122,7 +122,7 @@ void FCameraRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Vie
 void FCameraRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     constexpr EResourceType ResourceType = EResourceType::ERT_CameraW13; 
-    const FRenderTargetRHI* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
+    const FRenderTargetResource* RenderTargetRHI = Viewport->GetViewportResource()->GetRenderTarget(ResourceType);
     ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
     

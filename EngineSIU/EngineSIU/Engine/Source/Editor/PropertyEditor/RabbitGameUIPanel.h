@@ -127,7 +127,7 @@ private:
 
     bool showLargeView = false;
     int32 selectedPhotoIndex = -1;
-    const FRenderTargetRHI* selectedPicture = nullptr;
+    const FRenderTargetResource* selectedPicture = nullptr;
 
 };
 

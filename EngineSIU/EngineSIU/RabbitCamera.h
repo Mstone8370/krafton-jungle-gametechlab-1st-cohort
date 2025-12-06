@@ -17,7 +17,7 @@ public:
 
 private:
     int StoredPictureNum = 0;
-    TArray<FRenderTargetRHI*> PicturesRHI;
+    TArray<FRenderTargetResource*> PicturesRHI;
     bool  bIsShutterAnimating = false;
     float ShutterTimer = 0.0f;
     const float ShutterDuration = 0.2f; // 예: 0.25초
@@ -44,7 +44,7 @@ public:
     void TakePicture();
     void PlayCameraSound(bool IsEnd);
 
-    TArray<FRenderTargetRHI*> GetPicturesRHI() const;
+    TArray<FRenderTargetResource*> GetPicturesRHI() const;
 
     FOnPictureTaken OnPictureTaken;
     
@@ -54,8 +54,8 @@ public:
     void SetOwner(AActor* InOwner) { OwnerActor = InOwner; }
 
 private:
-    FRenderTargetRHI* CopySource(const FRenderTargetRHI* InputRHI);
-    FRenderTargetRHI* CaptureFrame();
+    FRenderTargetResource* CopySource(const FRenderTargetResource* InputRHI);
+    FRenderTargetResource* CaptureFrame();
     UPrimitiveComponent* CheckSubject();
     void TriggerShutterEffect();
     bool ValidateTakePicture();

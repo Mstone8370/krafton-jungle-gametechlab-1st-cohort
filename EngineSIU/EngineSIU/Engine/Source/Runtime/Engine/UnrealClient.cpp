@@ -104,7 +104,7 @@ HRESULT FViewportResource::CreateDepthStencil(EResourceType Type, EDownSampleSca
         ReleaseDepthStencil(Type, DownSampleScale);
     }
 
-    FDepthStencilRHI NewResource;
+    FDepthStencilResource NewResource;
     
     HRESULT hr = S_OK;
     
@@ -153,7 +153,7 @@ HRESULT FViewportResource::CreateDepthStencil(EResourceType Type, EDownSampleSca
     return hr;
 }
 
-const FDepthStencilRHI* FViewportResource::GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale)
+const FDepthStencilResource* FViewportResource::GetDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale)
 {
     if (!HasDepthStencil(Type, DownSampleScale))
     {
@@ -185,7 +185,7 @@ void FViewportResource::ClearDepthStencil(ID3D11DeviceContext* DeviceContext, ER
 {
     if (HasDepthStencil(Type, DownSampleScale))
     {
-        if (const FDepthStencilRHI* Resource = GetDepthStencil(Type, DownSampleScale))
+        if (const FDepthStencilResource* Resource = GetDepthStencil(Type, DownSampleScale))
         {
             DeviceContext->ClearDepthStencilView(Resource->DSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
         }
@@ -199,7 +199,7 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
         ReleaseRenderTarget(Type, DownSampleScale);
     }
     
-    FRenderTargetRHI NewResource;
+    FRenderTargetResource NewResource;
     
     HRESULT hr = S_OK;
     
@@ -247,7 +247,7 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
     return hr;
 }
 
-const FRenderTargetRHI* FViewportResource::GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale)
+const FRenderTargetResource* FViewportResource::GetRenderTarget(EResourceType Type, EDownSampleScale DownSampleScale)
 {
     if (!HasRenderTarget(Type, DownSampleScale))
     {
@@ -279,7 +279,7 @@ void FViewportResource::ClearRenderTarget(ID3D11DeviceContext* DeviceContext, ER
 {
     if (HasRenderTarget(Type, DownSampleScale))
     {
-        if (const FRenderTargetRHI* Resource = GetRenderTarget(Type, DownSampleScale))
+        if (const FRenderTargetResource* Resource = GetRenderTarget(Type, DownSampleScale))
         {
             DeviceContext->ClearRenderTargetView(Resource->RTV.Get(), ClearColors[Type].data());
         }

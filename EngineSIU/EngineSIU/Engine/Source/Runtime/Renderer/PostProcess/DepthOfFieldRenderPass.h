@@ -2,7 +2,7 @@
 
 #include "RenderPassBase.h"
 
-struct FRenderTargetRHI;
+struct FRenderTargetResource;
 struct ID3D11SamplerState;
 
 class FDepthOfFieldRenderPass : public FRenderPassBase

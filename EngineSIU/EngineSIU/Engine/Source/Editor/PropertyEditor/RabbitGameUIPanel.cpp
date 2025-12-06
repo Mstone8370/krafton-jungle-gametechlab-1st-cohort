@@ -354,7 +354,7 @@ void RabbitGameUIPanel::OnResize(HWND hWnd)
 
 void RabbitGameUIPanel::RenderGallery()
 {
-    TArray<FRenderTargetRHI*> Pictures = PlayerCam->GetPicturesRHI();
+    TArray<FRenderTargetResource*> Pictures = PlayerCam->GetPicturesRHI();
 
     // 각 사진의 작은 아이콘 SRV를 담을 변수 (직접 연결하세요)
     auto Icon1 = (ImTextureID)FEngineLoop::ResourceManager.GetTexture(L"Assets/Texture/Slave.png")->TextureSRV;
@@ -386,7 +386,7 @@ void RabbitGameUIPanel::RenderGallery()
     {
         ImGui::PushID(slotIdx);
 
-        const FRenderTargetRHI* picturePtr = (slotIdx < Pictures.Num()) ? Pictures[slotIdx] : nullptr;
+        const FRenderTargetResource* picturePtr = (slotIdx < Pictures.Num()) ? Pictures[slotIdx] : nullptr;
         ImTextureID baseTexture = picturePtr && picturePtr->SRV
             ? reinterpret_cast<ImTextureID>(picturePtr->SRV.Get())
             : OverlayIcons[slotIdx]; // 없으면 아이콘으로 대체

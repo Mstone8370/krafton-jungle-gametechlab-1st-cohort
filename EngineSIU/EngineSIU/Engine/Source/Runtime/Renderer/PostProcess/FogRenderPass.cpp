@@ -90,7 +90,7 @@ void FFogRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewpo
 
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     const EResourceType ResourceType = EResourceType::ERT_Scene; 
-    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    const FRenderTargetResource* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
 
     ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);

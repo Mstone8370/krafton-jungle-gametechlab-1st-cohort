@@ -181,7 +181,7 @@ public:
     bool IsOrthographic() const;
     bool IsPerspective() const;
 
-    const FVector& GetCameraLocation() const;
+    const FVector GetCameraLocation() const;
 
     float GetCameraFOV() const;
 

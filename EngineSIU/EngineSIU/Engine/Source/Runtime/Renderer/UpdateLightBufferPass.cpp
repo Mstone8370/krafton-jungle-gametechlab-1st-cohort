@@ -114,7 +114,7 @@ int32 FUpdateLightBufferPass::SelectActiveLights(const std::shared_ptr<FEditorVi
     Candidates.Reserve(TotalLightCount);
     Candidates.SetNum(TotalLightCount);
 
-    const FVector& ViewLocation = Viewport->GetCameraLocation();
+    const FVector ViewLocation = Viewport->GetCameraLocation();
 
     for (int32 i = 0; i < SpotLightCount; ++i)
     {
@@ -217,7 +217,7 @@ int32 FUpdateLightBufferPass::SelectActiveLights(const std::shared_ptr<FEditorVi
 
 float FUpdateLightBufferPass::CalculateLightImportance(const ULightComponentBase* Light, const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
-    const FVector& ViewLocation = Viewport->GetCameraLocation();
+    const FVector ViewLocation = Viewport->GetCameraLocation();
     
     const float Distance = FVector::DistSquared(Light->GetComponentLocation(), ViewLocation);
     const float ScreenRadius = (Light->GetRadius() / Distance) * Viewport->Projection[1][1];

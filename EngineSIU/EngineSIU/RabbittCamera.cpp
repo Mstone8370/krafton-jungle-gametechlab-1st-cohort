@@ -27,7 +27,7 @@ RabbitCamera::~RabbitCamera()
     ReleasePictures();
 }
 
-FRenderTargetRHI* RabbitCamera::CopySource(const FRenderTargetRHI* InputRHI)
+FRenderTargetResource* RabbitCamera::CopySource(const FRenderTargetResource* InputRHI)
 {
     auto Device = GEngineLoop.GraphicDevice.Device;
     auto DeviceContext = GEngineLoop.GraphicDevice.DeviceContext;
@@ -41,7 +41,7 @@ FRenderTargetRHI* RabbitCamera::CopySource(const FRenderTargetRHI* InputRHI)
     }
 
     // 1. 새로운 FRenderTargetRHI 객체를 힙에 할당
-    FRenderTargetRHI* destination = new (std::nothrow) FRenderTargetRHI();
+    FRenderTargetResource* destination = new (std::nothrow) FRenderTargetResource();
     if (!destination)
     {
         // 메모리 할당 실패
@@ -93,9 +93,9 @@ FRenderTargetRHI* RabbitCamera::CopySource(const FRenderTargetRHI* InputRHI)
     return destination;
 }
 
-FRenderTargetRHI* RabbitCamera::CaptureFrame()
+FRenderTargetResource* RabbitCamera::CaptureFrame()
 {
-    const FRenderTargetRHI* Source = GEngineLoop.GetLevelEditor()
+    const FRenderTargetResource* Source = GEngineLoop.GetLevelEditor()
         ->GetActiveViewportClient()
         ->GetViewportResource()
         ->GetRenderTarget(EResourceType::ERT_DepthOfField_Result);
@@ -160,7 +160,7 @@ void RabbitCamera::ReleasePictures()
     PicturesRHI.Empty();
 }
 
-TArray<FRenderTargetRHI*> RabbitCamera::GetPicturesRHI() const
+TArray<FRenderTargetResource*> RabbitCamera::GetPicturesRHI() const
 {
     return PicturesRHI;
 }

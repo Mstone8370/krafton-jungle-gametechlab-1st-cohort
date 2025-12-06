@@ -14,7 +14,7 @@
 #include "UnrealEd/EditorViewportClient.h"
 #include "UObject/UObjectIterator.h"
 
-struct FRenderTargetRHI;
+struct FRenderTargetResource;
 struct FMeshParticleInstanceVertex;
 class UParticleSystemComponent;
 
@@ -87,8 +87,8 @@ void FParticleMeshRenderPass::PrepareRender(const std::shared_ptr<FEditorViewpor
 
     constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
-    const FRenderTargetRHI* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
-    const FDepthStencilRHI* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
+    const FRenderTargetResource* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    const FDepthStencilResource* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
 
     ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, DepthStencilRHI->DSV.Get());
