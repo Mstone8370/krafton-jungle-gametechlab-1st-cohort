@@ -328,29 +328,23 @@ float GetSpotLightAttenuation(float Distance, float Radius, float3 LightDir, flo
 ////////
 #define PI 3.14159265359
 
-#ifdef LIGHTING_MODEL_PBR
-inline float SchlickWeight(float CosTheta) // (1‑x)^5 == pow(1-x, 5)
+float Pow5(float x)
 {
-    float m = saturate(1.0 - CosTheta);
-    return m * m * m * m * m;
+    return x * x * x * x * x;
 }
 
-float BurleyDiffuse(float3 N, float3 L, float3 V, float Roughness)
+float3 Diffuse_Lambert(float3 DiffuseColor)
 {
-    float3 H = normalize(L + V);
-    float  NoL = saturate(dot(N, L));
-    float  NoV = saturate(dot(N, V));
-    float  LoH = saturate(dot(L, H));
-    float  LoH2 = LoH * LoH;
+    return DiffuseColor / PI;
+}
 
-    float  Fd90 = 0.5 + 2.0 * Roughness * LoH2; // grazing boost
-
-    float DiffuseFresnelL = SchlickWeight(NoL);
-    float DiffuseFresnelV = SchlickWeight(NoV);
-
-    float  Fd = (1.0 + (Fd90 - 1.0) * DiffuseFresnelL) * (1.0 + (Fd90 - 1.0) * DiffuseFresnelV);
-
-    return Fd / PI;
+// [Burley 2012, "Physically-Based Shading at Disney"]
+float3 Diffuse_Burley( float3 DiffuseColor, float Roughness, float NoV, float NoL, float VoH )
+{
+    float FD90 = 0.5 + 2 * VoH * VoH * Roughness;
+    float FdV = 1 + (FD90 - 1) * Pow5( 1 - NoV );
+    float FdL = 1 + (FD90 - 1) * Pow5( 1 - NoL );
+    return DiffuseColor * ( (1 / PI) * FdV * FdL );
 }
 
 // [Portsmouth et al. 2025, "EON: A Practical Energy-Preserving Rough Diffuse BRDF"]
@@ -375,34 +369,26 @@ float3 Diffuse_EON( float3 DiffuseColor, float Roughness, float NoV, float NoL, 
     // The Rho_ms term from the paper can be approximated as just Rho^2
     return Rho * (f_ss + Rho * f_ms) * (1.0 / PI);
 }
-#endif
 
 
 ////////
 /// Specular
 ////////
-float Pow5(float x)
-{
-    return x * x * x * x * x;
-}
-
 float3 F_Schlick(float3 F0, float VoH)
 {
     float Fc = Pow5(1 - VoH);
     return Fc + (1 - Fc) * F0;
 }
 
-#ifdef LIGHTING_MODEL_PBR
-float  D_GGX(float NoH, float alpha)
+float D_GGX(float NoH, float a2)
 {
-    float a2 = alpha * alpha;
-    float d = (NoH * NoH) * (a2 - 1.0) + 1.0;
-    return a2 / (PI * d * d);                 // Trowbridge‑Reitz
+    float d = ( NoH * a2 - NoH ) * NoH + 1;
+    return a2 / (PI * d * d);
 }
 
-float  G_Smith(float NoV, float NoL, float alpha)
+float G_Smith(float NoV, float NoL, float alpha)
 {
-    float k = alpha * 0.5 + 0.0001;           // Schlick‑GGX (≈α/2)
+    float k = alpha * 0.5 + 0.0001;
     float gV = NoV / (NoV * (1.0 - k) + k);
     float gL = NoL / (NoL * (1.0 - k) + k);
     return gV * gL;
@@ -416,39 +402,26 @@ float Vis_SmithJoint(float a2, float NoV, float NoL)
     return 0.5 * rcp(Vis_SmithV + Vis_SmithL);
 }
 
-float3 CookTorranceSpecular(
-    float3  F0,        // base reflectance (metallic → albedo)
-    float   Roughness,
-    float3  N, float3  V, float3  L
-)
+float3 CookTorranceSpecular(float3 F0, float Roughness,
+    float NoL, float NoV, float NoH, float VoH)
 {
-    float3  H = normalize(V + L);
-    float   NoL = saturate(dot(N, L));
-    float   NoV = saturate(dot(N, V));
-    float   NoH = saturate(dot(N, H));
-    float   LoH = saturate(dot(L, H));
-    float   VoH = saturate(dot(V, H));
+    float alpha = Roughness * Roughness;
+    float a2 = alpha * alpha;
 
-    float   alpha = max(0.001, Roughness * Roughness);
-
-    float   D = D_GGX(NoH, alpha);
-    float   G = G_Smith(NoV, NoL, alpha);
-    float3  F = F_Schlick(F0, VoH);
+    float D = D_GGX(NoH, a2);
+    float G = G_Smith(NoV, NoL, alpha);
+    float3 F = F_Schlick(F0, VoH);
     
-    float Vis = Vis_SmithJoint(alpha * alpha, NoV, NoL);
+    float Vis = Vis_SmithJoint(a2, NoV, NoL);
     
     return D * Vis * F;
-
-    // return (D * G * F) / (4.0 * NoV * NoL + 1e-5);
 }
-#else
-float BlinnPhongSpecular(float3 N, float3 L, float3 V, float Shininess, float SpecularStrength = 1.0)
+
+float BlinnPhongSpecular(float NoH, float Shininess, float SpecularStrength = 1.0)
 {
-    float3 H = normalize(L + V);
-    float NoH = saturate(dot(N, H));
     return pow(NoH, Shininess) * SpecularStrength;
 }
-#endif
+
 
 ////////
 /// BRDF
@@ -468,24 +441,28 @@ FBRDFResult CalculateBRDF(float3 L, float3 V, float3 N,
 )
 {
     FBRDFResult Result = (FBRDFResult)0;
+    
+    float3 H = normalize(V + L);
+    float VoL = saturate(dot(V, L));
+    float NoL = saturate(dot(N, L));
+    float NoV = saturate(dot(N, V));
+    float VoH = saturate(dot(V, H));
+    float NoH = saturate(dot(N, H));
 
 #ifdef LIGHTING_MODEL_PBR
     float3 F0 = lerp(0.04, BaseColor, Metallic);
 
     float KdScale = 1.0 - Metallic;
-    float3 Kd = BaseColor * KdScale;
+    float3 DiffuseColor = BaseColor * KdScale;
     
-    float NoL = saturate(dot(N, L));
-    float NoV = saturate(dot(N, V));
-    float VoL = saturate(dot(V, L));
-    
-    // Result.DiffuseContribution = BurleyDiffuse(N, L, V, Roughness) * Kd;
-    Result.DiffuseContribution = Diffuse_EON(Kd, Roughness, NoV, NoL, VoL);
-    Result.SpecularContribution = CookTorranceSpecular(F0, Roughness, N, V, L);
+    //Result.DiffuseContribution = Diffuse_Lambert(DiffuseColor);
+    //Result.DiffuseContribution = Diffuse_Burley(DiffuseColor, Roughness, NoV, NoL, VoH);
+    //Result.DiffuseContribution = Diffuse_EON(DiffuseColor, Roughness, NoV, NoL, VoL);
+    Result.SpecularContribution = CookTorranceSpecular(F0, Roughness, NoL, NoV, NoH, VoH);
 #else
-    Result.DiffuseContribution = DiffuseColor / PI; // BPR의 에너지 보존 결과와 유사한 밝기를 맞추기 위함
+    Result.DiffuseContribution = DiffuseColor / PI; // Lambert Diffuse
 #ifdef LIGHTING_MODEL_BLINN_PHONG
-    Result.SpecularContribution = BlinnPhongSpecular(N, L, V, Shininess) * SpecularColor;
+    Result.SpecularContribution = BlinnPhongSpecular(NoH, Shininess) * SpecularColor;
 #endif
 #endif
     
@@ -961,7 +938,7 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     // 앰비언트
 #ifdef LIGHTING_MODEL_PBR
-    float3 IBL_DiffuseColor = float3(0.01, 0.01, 0.01); // TODO: 임시 값으로, 추후 IBL 적용
+    float3 IBL_DiffuseColor = 0; // TODO: 임시 값으로, 추후 IBL 적용
 
     if (AmbientLightCount > 0)
     {
