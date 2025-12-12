@@ -52,13 +52,13 @@ PS_INPUT_CommonMesh mainVS(VS_INPUT_SkeletalMesh Input)
             
                 // 본 행렬 적용 (BoneMatrices는 이미 최종 스키닝 행렬)
                 // FBX SDK에서 가져온 역바인드 포즈 행렬이 이미 포함됨
-                float4 pos = mul(float4(Input.Position, 1.0f), BoneMatrices[BoneIdx]);
-                float3 norm = mul(float4(Input.Normal, 0.0f), BoneMatrices[BoneIdx]).xyz;
-                float3 tan = mul(float4(Input.Tangent.xyz, 0.0f), BoneMatrices[BoneIdx]).xyz;
+                float4 Pos = mul(float4(Input.Position, 1.0f), BoneMatrices[BoneIdx]);
+                float3 Norm = mul(float4(Input.Normal, 0.0f), BoneMatrices[BoneIdx]).xyz;
+                float3 Tan = mul(float4(Input.Tangent.xyz, 0.0f), BoneMatrices[BoneIdx]).xyz;
             
-                SkinnedPosition += Weight * pos;
-                SkinnedNormal += Weight * norm;
-                SkinnedTangent += Weight * tan;
+                SkinnedPosition += Weight * Pos;
+                SkinnedNormal += Weight * Norm;
+                SkinnedTangent += Weight * Tan;
             }
         }
     
