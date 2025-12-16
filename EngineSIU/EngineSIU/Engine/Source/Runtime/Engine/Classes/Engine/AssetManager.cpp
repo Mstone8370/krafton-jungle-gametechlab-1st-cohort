@@ -307,6 +307,11 @@ EAssetType UAssetManager::GetAssetType(const UObject* AssetObject) const
     return AssetType;
 }
 
+void UAssetManager::LoadAssets()
+{
+    const std::string BasePathName = "Assets/";
+}
+
 void UAssetManager::LoadContentFiles()
 {
     const std::string BasePathName = "Contents/";

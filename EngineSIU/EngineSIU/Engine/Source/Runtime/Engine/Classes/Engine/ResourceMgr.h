@@ -14,6 +14,7 @@ public:
     
     HRESULT LoadTextureFromFile(ID3D11Device* Device, const wchar_t* Filename, bool bIsSRGB = true);
     HRESULT LoadTextureFromDDS(ID3D11Device* Device, ID3D11DeviceContext* Context, const wchar_t* Filename);
+    HRESULT LoadTextureFromHDR(ID3D11Device* Device, const wchar_t* Filename);
 
     std::shared_ptr<FTexture> GetTexture(const FWString& Name) const;
     

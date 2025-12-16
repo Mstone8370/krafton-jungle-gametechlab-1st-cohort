@@ -9,6 +9,7 @@
 #include "DirectXTK/DDSTextureLoader.h"
 #include "Engine/FObjLoader.h"
 
+#include "DirectXTex/DirectXTex.h"
 
 void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
 {
@@ -34,16 +35,20 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     LoadTextureFromFile(Device->Device, L"Assets/Viewer/BoneNonWeighted_16x.PNG");
     LoadTextureFromFile(Device->Device, L"Assets/Viewer/GroupActor_16x.PNG");
 
+    // Begin W13
     LoadTextureFromFile(Device->Device, L"Contents/Texture/CameraViewFinder.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/DeathBG.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/RestartButton.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/PictureEnd.png");
+    LoadTextureFromFile(Device->Device, L"Contents/Texture/DeathBG.png");
+    LoadTextureFromFile(Device->Device, L"Contents/Texture/RestartButton.png");
+    LoadTextureFromFile(Device->Device, L"Contents/Texture/PictureEnd.png");
+    LoadTextureFromFile(Device->Device, L"Contents/Texture/Lab.png");
+    LoadTextureFromFile(Device->Device, L"Contents/Texture/Slave.png");
+    LoadTextureFromFile(Device->Device, L"Contents/Texture/Carrot.png");
+    LoadTextureFromFile(Device->Device, L"Contents/Texture/Success.png");
+    // End W13
     
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/Lab.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/Slave.png");
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/Carrot.png");
-    
-    LoadTextureFromFile(Device->Device, L"Assets/Texture/Success.png");
+    // Begin IBL
+    LoadTextureFromHDR(Device->Device, L"Assets/Texture/IBL/sunny_rose_garden_4k.hdr");
+    // End IBL
 }
 
 void FResourceManager::Release(FRenderer* Renderer)
@@ -224,5 +229,66 @@ HRESULT FResourceManager::LoadTextureFromDDS(ID3D11Device* Device, ID3D11DeviceC
 
     //FConsole::GetInstance().AddLog(ELogLevel::Warning, "Texture File Load Successs");
 
+    return hr;
+}
+
+HRESULT FResourceManager::LoadTextureFromHDR(ID3D11Device* Device, const wchar_t* Filename)
+{
+    HRESULT hr = S_OK;
+    
+    DirectX::TexMetadata MetaData;
+    DirectX::ScratchImage ScratchImage;
+    
+    hr = DirectX::LoadFromHDRFile(Filename, &MetaData, ScratchImage);
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    
+    // to Resource
+    ID3D11Resource* TextureResource = nullptr;
+    hr = DirectX::CreateTexture(
+        Device,
+        ScratchImage.GetImages(),
+        ScratchImage.GetImageCount(),
+        MetaData,
+        &TextureResource
+    );
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    
+    // to Texture2D
+    ID3D11Texture2D* Texture = nullptr;
+    hr = TextureResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&Texture);
+    TextureResource->Release();
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    
+    // to SRV
+    ID3D11ShaderResourceView* TextureSRV = nullptr;
+    hr = DirectX::CreateShaderResourceView(
+        Device,
+        ScratchImage.GetImages(),
+        ScratchImage.GetImageCount(),
+        MetaData,
+        &TextureSRV
+    );
+    if (FAILED(hr))
+    {
+        return hr;
+    }
+    
+    D3D11_TEXTURE2D_DESC TexDesc;
+    Texture->GetDesc(&TexDesc);
+    uint32 Width = TexDesc.Width;
+    uint32 Height = TexDesc.Height;
+    
+    const FWString Name = FWString(Filename);
+    TextureMap[Name] = std::make_shared<FTexture>(TextureSRV, Texture, ESamplerType::Linear, Name, Width, Height);
+    
     return hr;
 }

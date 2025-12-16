@@ -1672,6 +1672,10 @@
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\RabbitGameUIPanel.cpp" />
     <ClCompile Include="Engine\Contents\Animation\AnimAttackNotify.cpp" />
     <ClCompile Include="Engine\Contents\Objects\HitCameraShake.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LocalLightComponent.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponentBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\IBL\IrradianceBakePass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\IBL\SpecularPrefilterBakePass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="EngineSIU.natvis" />
@@ -1826,6 +1830,10 @@
     <ClInclude Include="Engine\Contents\GameFramework\SuccessVolume.h" />
     <ClInclude Include="Engine\Contents\Animation\AnimAttackNotify.h" />
     <ClInclude Include="Engine\Contents\Objects\HitCameraShake.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LocalLightComponent.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Components\Light\LightComponentBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\IBL\IrradianceBakePass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\IBL\SpecularPrefilterBakePass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompositingShader.hlsl" />

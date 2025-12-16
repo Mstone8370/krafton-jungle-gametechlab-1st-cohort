@@ -18,7 +18,7 @@ FRenderPassBase::FRenderPassBase()
 
 FRenderPassBase::~FRenderPassBase()
 {
-    Release();
+    FRenderPassBase::Release();
 }
 
 void FRenderPassBase::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage)

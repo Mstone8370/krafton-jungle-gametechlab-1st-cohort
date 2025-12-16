@@ -9,7 +9,13 @@ class FEditorViewportClient;
 class IRenderPass
 {
 public:
+    IRenderPass() = default;
     virtual ~IRenderPass() = default;
+    
+    IRenderPass(const IRenderPass&) = delete;
+    IRenderPass& operator=(const IRenderPass&) = delete;
+    IRenderPass(IRenderPass&&) = delete;
+    IRenderPass& operator=(IRenderPass&&) = delete;
     
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManage) = 0;
 

@@ -17,6 +17,7 @@ enum class EAssetType : uint8
     Skeleton,
     Animation,
     Texture2D,
+    TextureCube,
     Material,
     ParticleSystem,
     PhysicsAsset,
@@ -116,6 +117,8 @@ private:
     double BinaryLoadTime = 0.0;
 
     EAssetType GetAssetType(const UObject* AssetObject) const;
+    
+    void LoadAssets();
 
     void LoadContentFiles();
 
