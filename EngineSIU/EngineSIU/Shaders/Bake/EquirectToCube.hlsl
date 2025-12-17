@@ -12,7 +12,7 @@ float2 SampleSphericalMap(float3 Direction)
     float Pitch_Rad = -asin(Direction.z); // [ -PI/2 rad, PI/2 rad]
     float2 UV = float2(Yaw_Rad, Pitch_Rad);
     
-    UV *= float2(0.1591, 0.3183); // (1/2pi, 1/pi). 라디안 값을 [-0.5, 0.5] 사이로 매핑
+    UV *= float2(0.1591549, 0.3183099); // (1/2pi, 1/pi). 라디안 값을 [-0.5, 0.5] 사이로 매핑
     UV += 0.5;
     
     return UV;

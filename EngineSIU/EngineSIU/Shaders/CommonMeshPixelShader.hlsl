@@ -172,6 +172,15 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     {
         FinalPixelColor.rgb += float3(0.01, 0.01, 0.0);
     }
+    
+#ifdef LIGHTING_MODEL_PBR
+    float3 N = WorldNormal;
+    float3 V = normalize(ViewWorldLocation - Input.WorldPosition);
+    float3 F0 = lerp(0.04, DiffuseColor, Metallic);
+    float3 R = reflect(-V, N);
+    
+    // return EnvironmentMap.SampleLevel(SamplerLinearClamp, R, 0);
+#endif
 
     return FinalPixelColor;
 }

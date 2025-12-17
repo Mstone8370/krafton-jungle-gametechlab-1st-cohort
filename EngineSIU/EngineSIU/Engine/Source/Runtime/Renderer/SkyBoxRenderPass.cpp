@@ -57,14 +57,13 @@ void FSkyBoxRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
     constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();
     const FRenderTargetResource* RenderTargetRHI = ViewportResource->GetRenderTarget(ResourceType);
+    const FDepthStencilResource* DepthStencilRHI = ViewportResource->GetDepthStencil(ResourceType);
 
     ID3D11RenderTargetView* RTV = RenderTargetRHI->RTV.Get();
-    Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, nullptr);
+    ID3D11DepthStencilView* DSV = DepthStencilRHI->DSV.Get();
+    Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, DSV);
 
-    Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 0);
-    
-    Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidSkyBox);
+    Graphics->DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
 }
 
 void FSkyBoxRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)

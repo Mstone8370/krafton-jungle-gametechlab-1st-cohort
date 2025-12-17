@@ -29,8 +29,8 @@ void FCubeMapBakePass::Render(const std::shared_ptr<FEditorViewportClient>& View
     }
     
     D3D11_TEXTURE2D_DESC Desc = {};
-    Desc.Width = 1024;
-    Desc.Height = 1024;
+    Desc.Width = TextureSize;
+    Desc.Height = Desc.Width;
     Desc.MipLevels = 0;
     Desc.ArraySize = 6;
     Desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;

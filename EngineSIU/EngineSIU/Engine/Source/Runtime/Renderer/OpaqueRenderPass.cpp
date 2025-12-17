@@ -180,6 +180,13 @@ void FOpaqueRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
 
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 0);
+    
+    // Begin IBL
+    if (SkyBoxSRV)
+    {
+        Graphics->DeviceContext->PSSetShaderResources(9, 1, &SkyBoxSRV);
+    }
+    // End IBL
 }
 
 void FOpaqueRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -191,7 +198,10 @@ void FOpaqueRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClien
     Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_PointLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
     Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_DirectionalLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
     Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_SpotLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
-
+    // Begin IBL
+    Graphics->DeviceContext->PSSetShaderResources(9, 1, NullSRV);
+    // End IBL
+    
     // 머티리얼 리소스 해제
     constexpr UINT NumViews = static_cast<UINT>(EMaterialTextureSlots::MTS_MAX);
     

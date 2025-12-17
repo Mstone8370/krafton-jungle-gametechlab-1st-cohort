@@ -393,7 +393,7 @@ void ControlEditorPanel::CreateModifyButton(const ImVec2 ButtonSize, ImFont* Ico
         ImGui::Text("Gamma");
         float Gamma = FEngineLoop::Renderer.CompositingPass->GammaValue;
         ImGui::SetNextItemWidth(120.0f);
-        if (ImGui::DragFloat("##Gamma", &Gamma, 0.01f, 0.01f, 4.0f, "%.1f"))
+        if (ImGui::DragFloat("##Gamma", &Gamma, 0.005f, 0.01f, 4.0f, "%.2f"))
         {
             FEngineLoop::Renderer.CompositingPass->GammaValue = Gamma;
         }

@@ -39,6 +39,17 @@ struct PS_Input
     float2 UV : TEXCOORD;
 };
 
+float3 ApplyToneMapping(float3 hdrColor)
+{
+    // ACES Filmic
+    float A = 2.51f;
+    float B = 0.03f;
+    float C = 2.43f;
+    float D = 0.59f;
+    float E = 0.14f;
+    return saturate((hdrColor * (A * hdrColor + B)) / (hdrColor * (C * hdrColor + D) + E));
+}
+
 float4 main(PS_Input Input) : SV_TARGET
 {
     float4 Scene = SceneTexture.Sample(CompositingSampler, Input.UV);
@@ -60,13 +71,24 @@ float4 main(PS_Input Input) : SV_TARGET
     else
     {
         FinalColor = lerp(FinalColor, PostProcess, PostProcess.a);
-        FinalColor = pow(FinalColor, GammaValue);
-        FinalColor = lerp(FinalColor, Editor, Editor.a);
         // TODO: 반투명 물체는 포스트 프로세싱을 어떻게 처리해야하는지 고민해야 함.
         FinalColor = lerp(FinalColor, Translucent, Translucent.a);
-        FinalColor = lerp(FinalColor, EditorOverlay, EditorOverlay.a);
         FinalColor = lerp(FinalColor, CameraEffect, CameraEffect.a);
         FinalColor = lerp(FinalColor, CameraW13, CameraW13.a);
+        
+        // Exposure
+        float Exposure = 1.0f;
+        FinalColor.rgb *= Exposure;
+        
+        // Tone mapping
+        FinalColor.rgb = ApplyToneMapping(FinalColor.rgb);
+        
+        // Gamma Correction
+        FinalColor = pow(FinalColor, 1 / GammaValue);
+        
+        // Editor
+        FinalColor = lerp(FinalColor, Editor, Editor.a);
+        FinalColor = lerp(FinalColor, EditorOverlay, EditorOverlay.a);
     }
 
     return FinalColor;

@@ -15,18 +15,18 @@ static const float3 CubeVertices[8] = { // from .obj file
 };
 
 static const int CubeIndices[36] = { // from .obj file
-    2, 3, 1,
-    4, 7, 3,
-    8, 5, 7,
-    6, 1, 5,
-    7, 1, 3,
-    4, 6, 8,
-    2, 4, 3,
-    4, 8, 7,
-    8, 6, 5,
-    6, 2, 1,
-    7, 5, 1,
-    4, 2, 6,
+    3, 2, 1,
+    7, 4, 3,
+    5, 8, 7,
+    1, 6, 5,
+    1, 7, 3,
+    6, 4, 8,
+    4, 2, 3,
+    8, 4, 7,
+    6, 8, 5,
+    2, 6, 1,
+    5, 7, 1,
+    2, 4, 6,
 };
 
 struct VS_OUTPUT
@@ -45,7 +45,7 @@ VS_OUTPUT mainVS(uint VertexID : SV_VertexID)
     Output.Position = mul(Output.Position, ViewMatrix);
     Output.Position = mul(Output.Position, ProjectionMatrix);
     
-    Output.Position.z = Output.Position.w; // 핵심: Perspective Divide(Z/W) 후 깊이값이 항상 1.0이 되도록 함
+    Output.Position.z = Output.Position.w * 0.9999; // 핵심: Perspective Divide(Z/W) 후 깊이값이 항상 1.0이 되도록 함
     
     Output.UV = LocalPosition;
     
@@ -54,5 +54,5 @@ VS_OUTPUT mainVS(uint VertexID : SV_VertexID)
 
 float4 mainPS(VS_OUTPUT Input) : SV_Target
 {
-    return SkyBoxTexture.Sample(SamplerPointClamp, normalize(Input.UV));
+    return SkyBoxTexture.Sample(SamplerLinearClamp, normalize(Input.UV));
 }

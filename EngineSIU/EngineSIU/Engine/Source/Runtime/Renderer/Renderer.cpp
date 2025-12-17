@@ -390,10 +390,6 @@ void FRenderer::RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewp
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     
-    {
-        SkyBoxRenderPass->Render(Viewport);
-    }
-    
     if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
     {
         {
@@ -410,6 +406,10 @@ void FRenderer::RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewp
             QUICK_GPU_SCOPE_CYCLE_COUNTER(ParticleMeshPass_GPU, *GPUTimingManager)
             ParticleMeshRenderPass->Render(Viewport);
         }
+    }
+    
+    {
+        SkyBoxRenderPass->Render(Viewport);
     }
 }
 
@@ -528,6 +528,7 @@ void FRenderer::BakeIBL()
     SpecularPrefilterBakePass->Render(DummyViewport);
     
     SkyBoxRenderPass->SetCubeMapSRV(CubeMapBakePass->GetCubeMapSRV());
+    OpaqueRenderPass->SkyBoxSRV = CubeMapBakePass->GetCubeMapSRV();
 }
 
 void FRenderer::BakeEnvironmentMap(const FWString& Texture2DName)

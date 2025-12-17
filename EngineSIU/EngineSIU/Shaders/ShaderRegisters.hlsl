@@ -73,6 +73,10 @@ struct FMaterial
 
 Texture2D MaterialTextures[9] : register(t0);
 
+// Begin IBL
+TextureCube EnvironmentMap : register(t9);
+// End IBL
+
 SamplerState SamplerLinearWrap : register(s0);
 SamplerState SamplerLinearClamp : register(s1);
 SamplerState SamplerPointWrap : register(s2);

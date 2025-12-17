@@ -32,4 +32,6 @@ private:
     ID3D11Texture2D* CubeMapTexture = nullptr;
     ID3D11UnorderedAccessView* CubeMapUAV = nullptr;
     ID3D11ShaderResourceView* CubeMapSRV = nullptr;
+    
+    uint32 TextureSize = 1024;
 };

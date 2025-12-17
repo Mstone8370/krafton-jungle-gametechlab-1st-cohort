@@ -33,6 +33,8 @@ public:
     
     void ChangeViewMode(EViewModeIndex ViewMode);
     
+    ID3D11ShaderResourceView* SkyBoxSRV = nullptr;
+    
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;

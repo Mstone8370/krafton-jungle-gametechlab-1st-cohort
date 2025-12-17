@@ -194,7 +194,7 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
     TextureDesc.Height = static_cast<uint32>(D3DViewport.Height / static_cast<float>(DownSampleScale));
     TextureDesc.MipLevels = 1;
     TextureDesc.ArraySize = 1;
-    TextureDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+    TextureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
     TextureDesc.SampleDesc.Count = 1;
     TextureDesc.SampleDesc.Quality = 0;
     TextureDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -209,7 +209,7 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
     }
     
     D3D11_RENDER_TARGET_VIEW_DESC RTVDesc = {};
-    RTVDesc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+    RTVDesc.Format = TextureDesc.Format;
     RTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     hr = FEngineLoop::GraphicDevice.Device->CreateRenderTargetView(NewResource.Texture2D.Get(), &RTVDesc, &NewResource.RTV);
     if (FAILED(hr))
