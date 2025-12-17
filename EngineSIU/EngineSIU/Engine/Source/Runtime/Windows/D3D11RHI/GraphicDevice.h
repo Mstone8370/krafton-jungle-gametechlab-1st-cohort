@@ -32,6 +32,7 @@ public:
     
     ID3D11RasterizerState* RasterizerSolidBack = nullptr;
     ID3D11RasterizerState* RasterizerSolidFront = nullptr;
+    ID3D11RasterizerState* RasterizerSolidSkyBox = nullptr;
     ID3D11RasterizerState* RasterizerWireframeBack = nullptr;
     ID3D11RasterizerState* RasterizerShadow = nullptr;
 

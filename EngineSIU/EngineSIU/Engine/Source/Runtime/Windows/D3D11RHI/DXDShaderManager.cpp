@@ -579,6 +579,12 @@ HRESULT FDXDShaderManager::AddVertexShader(const std::wstring& Key, const std::w
 
 HRESULT FDXDShaderManager::AddComputeShader(const std::wstring& Key, const std::wstring& FileName, const std::string& EntryPoint)
 {
+    return AddComputeShader(Key, FileName, EntryPoint, nullptr);
+}
+
+HRESULT FDXDShaderManager::AddComputeShader(const std::wstring& Key,
+    const std::wstring& FileName, const std::string& EntryPoint, const D3D_SHADER_MACRO* Defines)
+{
     if (DXDDevice == nullptr)
     {
         return S_FALSE;
@@ -596,7 +602,7 @@ HRESULT FDXDShaderManager::AddComputeShader(const std::wstring& Key, const std::
 
     HRESULT Result = D3DCompileFromFile( 
         FileName.c_str(),
-        nullptr,
+        Defines,
         D3D_COMPILE_STANDARD_FILE_INCLUDE,
         EntryPoint.c_str(),
         "cs_5_0",

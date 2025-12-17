@@ -48,6 +48,7 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     
     // Begin IBL
     LoadTextureFromHDR(Device->Device, L"Assets/Texture/IBL/sunny_rose_garden_4k.hdr");
+    FEngineLoop::Renderer.BakeEnvironmentMap(L"Assets/Texture/IBL/sunny_rose_garden_4k.hdr");
     // End IBL
 }
 

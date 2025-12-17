@@ -92,6 +92,8 @@ int32 FEngineLoop::Init(HINSTANCE hInstance)
     UIManager->Initialize(AppWnd, GraphicDevice.Device, GraphicDevice.DeviceContext);
     ResourceManager.Initialize(&Renderer, &GraphicDevice);
     
+    Renderer.BakeIBL();
+    
     uint32 ClientWidth = 0;
     uint32 ClientHeight = 0;
     GetClientSize(ClientWidth, ClientHeight);

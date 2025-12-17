@@ -16,6 +16,11 @@
 #include "Renderer/CameraRenderPass.h"
 
 
+class FCubeMapBakePass;
+class FSpecularPrefilterBakePass;
+class FIrradianceBakePass;
+class FSkyBoxRenderPass;
+
 class FPostProcessRenderPass;
 class FParticleMeshRenderPass;
 class FParticleSpriteRenderPass;
@@ -47,6 +52,9 @@ class FSlateRenderPass;
 class FEditorRenderPass;
 class FDepthPrePass;
 class FTileLightCullingPass;
+class FShadowManager;
+class FShadowRenderPass;
+
 class FGPUTimingManager;
 
 class FRenderer
@@ -64,7 +72,6 @@ public:
     void Render(const std::shared_ptr<FEditorViewportClient>& Viewport);
     void RenderViewport(const std::shared_ptr<FEditorViewportClient>& Viewport) const; // TODO: 추후 RenderSlate로 변경해야함
 
-    FPostProcessRenderPass* GetPostProcessRenderPass();
 protected:
     void BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
@@ -98,10 +105,10 @@ public:
     FGraphicsDevice* Graphics;
     FDXDBufferManager* BufferManager;
     FDXDShaderManager* ShaderManager = nullptr;
-    class FShadowManager* ShadowManager = nullptr;
+    FShadowManager* ShadowManager = nullptr;
     FGPUTimingManager* GPUTimingManager = nullptr;
     
-    class FShadowRenderPass* ShadowRenderPass;
+    FShadowRenderPass* ShadowRenderPass;
 
     FOpaqueRenderPass* OpaqueRenderPass = nullptr;
     FWorldBillboardRenderPass* WorldBillboardRenderPass = nullptr;
@@ -124,6 +131,15 @@ public:
     
     FSlateRenderPass* SlateRenderPass = nullptr;
     FCameraRenderPass* CameraRenderPass = nullptr;
+    
+    // Begin IBL
+    FCubeMapBakePass* CubeMapBakePass = nullptr;
+    FIrradianceBakePass* IrradianceBakePass = nullptr;
+    FSpecularPrefilterBakePass* SpecularPrefilterBakePass = nullptr;
+    FSkyBoxRenderPass* SkyBoxRenderPass = nullptr;
+
+    void BakeIBL();
+    // End IBL
 
 private:
     template <typename RenderPassType>
@@ -134,6 +150,11 @@ private:
     
     const int32 MaxBoneNum = 1024;
     const int32 MaxParticleInstanceNum = 1024;
+    
+    // Begin IBL
+public:
+    void BakeEnvironmentMap(const FWString& Texture2DName);
+    // End IBL
 };
 
 template <typename RenderPassType> requires std::derived_from<RenderPassType, IRenderPass>

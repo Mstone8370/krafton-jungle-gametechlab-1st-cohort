@@ -1,12 +1,12 @@
-#pragma once
-
+﻿#pragma once
 #include "RenderPassBase.h"
-#include "Container/Map.h"
 #include "Container/Queue.h"
 
-struct ID3D11Texture3D;
+struct ID3D11Texture2D;
+struct ID3D11UnorderedAccessView;
+struct ID3D11ShaderResourceView;
 
-class FIrradianceBakePass : public FRenderPassBase
+class FCubeMapBakePass : public FRenderPassBase
 {
 public:
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
@@ -14,7 +14,9 @@ public:
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
-    void EnqueueIrradianceBake(const FWString& FilePath);
+    void EnqueueCubeMapBake(const FWString& FilePath);
+    
+    ID3D11ShaderResourceView* GetCubeMapSRV() const { return CubeMapSRV; }
     
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
@@ -27,5 +29,7 @@ protected:
 private:
     TQueue<FWString> BakeQueue;
     
-    TMap<FWString, ID3D11Texture3D*> IrradianceMap;
+    ID3D11Texture2D* CubeMapTexture = nullptr;
+    ID3D11UnorderedAccessView* CubeMapUAV = nullptr;
+    ID3D11ShaderResourceView* CubeMapSRV = nullptr;
 };

@@ -19,6 +19,11 @@ void FIrradianceBakePass::Render(const std::shared_ptr<FEditorViewportClient>& V
 {
 }
 
+void FIrradianceBakePass::EnqueueIrradianceBake(const FWString& FilePath)
+{
+    BakeQueue.Enqueue(FilePath);
+}
+
 void FIrradianceBakePass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
 }

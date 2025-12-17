@@ -48,7 +48,7 @@ void FGraphicsDevice::CreateDeviceAndSwapChain(HWND hWindow)
 
     uint32 Flag = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #if _DEBUG
-    //Flag |= D3D11_CREATE_DEVICE_DEBUG;
+    Flag |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
     // 디바이스와 스왑 체인 생성
     const HRESULT Result = D3D11CreateDeviceAndSwapChain(
@@ -132,7 +132,7 @@ void FGraphicsDevice::CreateDepthStencilState()
     // Depth test parameters
     DepthStencilStateDesc.DepthEnable = true;
     DepthStencilStateDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-    DepthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    DepthStencilStateDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 
     // Stencil test parameters
     DepthStencilStateDesc.StencilEnable = true;
@@ -170,6 +170,11 @@ void FGraphicsDevice::CreateRasterizerState()
     RasterizerDesc.FillMode = D3D11_FILL_SOLID;
     RasterizerDesc.CullMode = D3D11_CULL_FRONT; 
     Device->CreateRasterizerState(&RasterizerDesc, &RasterizerSolidFront);
+    
+    RasterizerDesc.FillMode = D3D11_FILL_SOLID;
+    RasterizerDesc.CullMode = D3D11_CULL_NONE; 
+    RasterizerDesc.DepthClipEnable = false;
+    Device->CreateRasterizerState(&RasterizerDesc, &RasterizerSolidSkyBox);
 
     RasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
     RasterizerDesc.CullMode = D3D11_CULL_BACK;

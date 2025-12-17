@@ -415,6 +415,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClCompile Include="Engine\Source\Runtime\Launch\Launch.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\CollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\PhysicsManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\CubeMapBakePass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\IBL\IrradianceBakePass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\IBL\SpecularPrefilterBakePass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.cpp" />
@@ -436,6 +437,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClCompile Include="Engine\Source\Runtime\Renderer\RenderPassBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShadowManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\ShadowRenderPass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\SkyBoxRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\SlateRenderPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\TileLightCullingPass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\TranslucentRenderPass.cpp" />
@@ -482,6 +484,8 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClCompile Include="RabbittCamera.cpp" />
     <ClCompile Include="Engine\Source\Editor\PropertyEditor\RabbitGameUIPanel.cpp" />
     <None Include="Shaders\W13\W13CameraShader.hlsl" />
+    <None Include="Shaders\Bake\EquirectToCube.hlsl" />
+    <None Include="Shaders\SkyBoxShader.hlsl" />
     <ClCompile Include="SoundManager.cpp" />
     <None Include="Shaders\CompositingShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -814,6 +818,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClInclude Include="Engine\Source\Runtime\Launch\LightDefine.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\CollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\PhysicsManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\CubeMapBakePass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\IBL\IrradianceBakePass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\IBL\SpecularPrefilterBakePass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.h" />
@@ -839,6 +844,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShaderConstants.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShadowManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\ShadowRenderPass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\SkyBoxRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\SlateRenderPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\TileLightCullingPass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\TranslucentRenderPass.h" />

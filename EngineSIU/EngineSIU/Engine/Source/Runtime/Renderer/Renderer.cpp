@@ -25,6 +25,12 @@
 #include "PostProcess/PostProcessRenderPass.h"
 #include "ShadowManager.h"
 #include "ShadowRenderPass.h"
+
+#include "SkyBoxRenderPass.h"
+#include "Baking/CubeMapBakePass.h"
+#include "Baking/IBL/IrradianceBakePass.h"
+#include "Baking/IBL/SpecularPrefilterBakePass.h"
+
 #include "UnrealClient.h"
 #include "GameFrameWork/Actor.h"
 
@@ -72,6 +78,17 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     // Begin W13
     CameraRenderPass = AddRenderPass<FCameraRenderPass>();
     // End W13
+    
+    // Begin IBL
+    CubeMapBakePass = new FCubeMapBakePass();
+    IrradianceBakePass = new FIrradianceBakePass();
+    SpecularPrefilterBakePass = new FSpecularPrefilterBakePass();
+    CubeMapBakePass->Initialize(BufferManager, Graphics, ShaderManager);
+    IrradianceBakePass->Initialize(BufferManager, Graphics, ShaderManager);
+    SpecularPrefilterBakePass->Initialize(BufferManager, Graphics, ShaderManager);
+    
+    SkyBoxRenderPass = AddRenderPass<FSkyBoxRenderPass>();
+    // End IBL
 
     const bool bShadowManagerInitialized = ShadowManager->Initialize(Graphics, BufferManager);
     assert(bShadowManagerInitialized);
@@ -373,6 +390,10 @@ void FRenderer::RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewp
 {
     const uint64 ShowFlag = Viewport->GetShowFlag();
     
+    {
+        SkyBoxRenderPass->Render(Viewport);
+    }
+    
     if (ShowFlag & (EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_SkeletalMesh))
     {
         {
@@ -499,7 +520,17 @@ void FRenderer::RenderViewport(const std::shared_ptr<FEditorViewportClient>& Vie
     SlateRenderPass->Render(Viewport);
 }
 
-FPostProcessRenderPass* FRenderer::GetPostProcessRenderPass()
+void FRenderer::BakeIBL()
 {
-    return PostProcessRenderPass;
+    std::shared_ptr<FEditorViewportClient> DummyViewport = std::make_shared<FEditorViewportClient>();
+    CubeMapBakePass->Render(DummyViewport);
+    IrradianceBakePass->Render(DummyViewport);
+    SpecularPrefilterBakePass->Render(DummyViewport);
+    
+    SkyBoxRenderPass->SetCubeMapSRV(CubeMapBakePass->GetCubeMapSRV());
+}
+
+void FRenderer::BakeEnvironmentMap(const FWString& Texture2DName)
+{
+    CubeMapBakePass->EnqueueCubeMapBake(Texture2DName);
 }
