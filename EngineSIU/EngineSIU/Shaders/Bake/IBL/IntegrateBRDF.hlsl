@@ -1,8 +1,69 @@
 
+#include "Shaders/BRDF.hlsl"
+#include "Shaders/ImageBasedLightingCommon.hlsl"
 
+#ifndef NUM_SAMPLES
+#define NUM_SAMPLES 2048
+#endif
 
+RWTexture2D<float2> OutputTexture : register(u0);
 
 float2 IntegrateBRDF(float Roughness, float NoV)
 {
+    Roughness = max(Roughness, 0.025);
     
+    float3 V;
+    V.x = sqrt(1.0f - NoV * NoV); // sin
+    V.y = 0.0f;
+    V.z = NoV; // cos
+    
+    float A = 0;
+    float B = 0;
+    
+    float3 N = float3(0, 0, 1);
+    
+    for (uint i = 0; i < NUM_SAMPLES; ++i)
+    {
+        float2 Xi = Hammersley(i, NUM_SAMPLES);
+        float3 H = ImportanceSampleGGX(Xi, Roughness, N);
+        float3 L = 2 * dot(V, H) * H - V;
+        
+        float NoL = saturate(L.z);
+        if (NoL > 0)
+        {
+            float NoH = saturate(H.z);
+            float VoH = saturate(dot(V, H));
+            
+            float alpha = Roughness * Roughness;
+            
+            float G = G_Smith(NoV, NoL, alpha);
+            
+            float G_Vis = G * VoH / (NoH * NoV);
+            float Fc = Pow5(1 - VoH);
+            A += (1 - Fc) * G_Vis;
+            B += Fc * G_Vis;
+        }
+    }
+    
+    return float2(A, B) / NUM_SAMPLES;
+}
+
+[numthreads(THREADS_X, THREADS_Y, 1)]
+void main(uint3 DispatchThreadID : SV_DispatchThreadID)
+{
+    uint Width;
+    uint Height;
+    OutputTexture.GetDimensions(Width, Height);
+    
+    if (DispatchThreadID.x >= Width || DispatchThreadID.y >= Height)
+    {
+        return;
+    }
+    
+    float NoV = (float(DispatchThreadID.x) + 0.5) / float(Width);
+    float Roughness = (float(DispatchThreadID.y) + 0.5) / float(Height);
+    
+    float2 IntegratedBRDF = IntegrateBRDF(Roughness, NoV);
+    
+    OutputTexture[DispatchThreadID.xy] = IntegratedBRDF;
 }

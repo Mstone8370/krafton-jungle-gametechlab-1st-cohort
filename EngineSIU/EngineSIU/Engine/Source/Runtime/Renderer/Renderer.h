@@ -16,6 +16,7 @@
 #include "Renderer/CameraRenderPass.h"
 
 
+class FIntegrateBRDFBakePass;
 class FCubeMapBakePass;
 class FSpecularPrefilterBakePass;
 class FIrradianceBakePass;
@@ -133,6 +134,7 @@ public:
     FCameraRenderPass* CameraRenderPass = nullptr;
     
     // Begin IBL
+    FIntegrateBRDFBakePass* IntegrateBRDFBakePass = nullptr;
     FCubeMapBakePass* CubeMapBakePass = nullptr;
     FIrradianceBakePass* IrradianceBakePass = nullptr;
     FSpecularPrefilterBakePass* SpecularPrefilterBakePass = nullptr;
@@ -154,6 +156,8 @@ private:
     // Begin IBL
 public:
     void BakeEnvironmentMap(const FWString& Texture2DName);
+    
+    void BakeEnvironmentBRDF(const FWString& Path);
     // End IBL
 };
 

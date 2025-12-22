@@ -13,7 +13,7 @@ public:
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
-    void Bake();
+    void Bake(const FWString& Path);
     
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
@@ -24,9 +24,9 @@ protected:
     virtual void Release() override;
     
 private:
-    FWString BakePath;
+    uint32 TextureSize;
     
-    uint32 NumSamples;
-    
-    bool bBake;
+    ID3D11Texture2D* Texture2D;
+    ID3D11UnorderedAccessView* UAV;
+    ID3D11ShaderResourceView* SRV;
 };

@@ -32,6 +32,7 @@
 #include "Baking/IBL/SpecularPrefilterBakePass.h"
 
 #include "UnrealClient.h"
+#include "Baking/IBL/IntegrateBRDFBakePass.h"
 #include "GameFrameWork/Actor.h"
 
 #include "PropertyEditor/ShowFlags.h"
@@ -80,9 +81,11 @@ void FRenderer::Initialize(FGraphicsDevice* InGraphics, FDXDBufferManager* InBuf
     // End W13
     
     // Begin IBL
+    IntegrateBRDFBakePass = new FIntegrateBRDFBakePass();
     CubeMapBakePass = new FCubeMapBakePass();
     IrradianceBakePass = new FIrradianceBakePass();
     SpecularPrefilterBakePass = new FSpecularPrefilterBakePass();
+    IntegrateBRDFBakePass->Initialize(BufferManager, Graphics, ShaderManager);
     CubeMapBakePass->Initialize(BufferManager, Graphics, ShaderManager);
     IrradianceBakePass->Initialize(BufferManager, Graphics, ShaderManager);
     SpecularPrefilterBakePass->Initialize(BufferManager, Graphics, ShaderManager);
@@ -534,4 +537,9 @@ void FRenderer::BakeIBL()
 void FRenderer::BakeEnvironmentMap(const FWString& Texture2DName)
 {
     CubeMapBakePass->EnqueueCubeMapBake(Texture2DName);
+}
+
+void FRenderer::BakeEnvironmentBRDF(const FWString& Path)
+{
+    IntegrateBRDFBakePass->Bake(Path);
 }

@@ -1,4 +1,6 @@
 #include "ResourceMgr.h"
+
+#include <filesystem>
 #include <fstream>
 #include <ranges>
 #include <unordered_map>
@@ -51,6 +53,17 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     //IBLPath = L"Assets/Texture/IBL/university_workshop_4k.hdr";
     LoadTextureFromHDR(Device->Device, IBLPath.c_str());
     FEngineLoop::Renderer.BakeEnvironmentMap(IBLPath);
+    
+    std::wstring EnvironmentBRDFPath = L"Assets/Texture/IBL/LUT/EnvironmentBRDF.dds";
+    if (std::filesystem::exists(EnvironmentBRDFPath))
+    {
+        FEngineLoop::Renderer.BakeEnvironmentBRDF(EnvironmentBRDFPath);
+        // LoadTextureFromDDS(Device->Device, Device->DeviceContext, EnvironmentBRDFPath.c_str());
+    }
+    else
+    {
+        FEngineLoop::Renderer.BakeEnvironmentBRDF(EnvironmentBRDFPath);
+    }
     // End IBL
 }
 
@@ -90,6 +103,11 @@ std::shared_ptr<FTexture> FResourceManager::GetTexture(const FWString& Name) con
 {
     auto* TempValue = TextureMap.Find(Name);
     return TempValue ? *TempValue : nullptr;
+}
+
+void FResourceManager::AddTexture(const FWString& Name, std::shared_ptr<FTexture> Texture)
+{
+    TextureMap[Name] = Texture;
 }
 
 HRESULT FResourceManager::LoadTextureFromFile(ID3D11Device* Device, const wchar_t* Filename, bool bIsSRGB)

@@ -2,6 +2,9 @@
 #ifndef IMAGE_BASED_LIGHTING_COMMON
 #define IMAGE_BASED_LIGHTING_COMMON
 
+#include "Shaders/ShaderRegisters.hlsl"
+#include "Shaders/BRDF.hlsl"
+
 // 1. 비트 뒤집기 (Van der Corput sequence)
 float RadicalInverse_VdC(uint bits)
 {

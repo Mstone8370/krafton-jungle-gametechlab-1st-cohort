@@ -18,6 +18,8 @@ public:
 
     std::shared_ptr<FTexture> GetTexture(const FWString& Name) const;
     
+    void AddTexture(const FWString& Name, std::shared_ptr<FTexture> Texture);
+    
 private:
     TMap<FWString, std::shared_ptr<FTexture>> TextureMap;
 };

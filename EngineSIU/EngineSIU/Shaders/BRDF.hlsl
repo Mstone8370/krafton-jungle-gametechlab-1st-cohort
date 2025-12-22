@@ -1,4 +1,7 @@
 
+#ifndef BRDF_H
+#define BRDF_H
+
 #define PI 3.14159265359
 
 ////////
@@ -64,7 +67,7 @@ float D_GGX(float NoH, float a2)
 
 float G_Smith(float NoV, float NoL, float alpha)
 {
-    float k = alpha * 0.5 + 0.0001;
+    float k = alpha * 0.5;
     float gV = NoV / (NoV * (1.0 - k) + k);
     float gL = NoL / (NoL * (1.0 - k) + k);
     return gV * gL;
@@ -144,3 +147,5 @@ FBRDFResult CalculateBRDF(float3 L, float3 V, float3 N,
     
     return Result;
 }
+
+#endif
