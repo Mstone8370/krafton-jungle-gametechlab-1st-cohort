@@ -120,6 +120,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     {
         Roughness = MaterialTextures[TEXTURE_SLOT_ROUGHNESS].Sample(SamplerLinearWrap, Input.UV).g;
     }
+    Roughness = max(Roughness, 0.0001);
 #endif
     
     // Begin for Tile based light culled result
@@ -177,9 +178,8 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     float3 N = WorldNormal;
     float3 V = normalize(ViewWorldLocation - Input.WorldPosition);
     float3 F0 = lerp(0.04, DiffuseColor, Metallic);
-    float3 R = reflect(-V, N);
     
-    // return EnvironmentMap.SampleLevel(SamplerLinearClamp, R, 0);
+    FinalPixelColor.rgb += SpecularIBL_Reference(F0, Roughness, N, V);
 #endif
 
     return FinalPixelColor;
