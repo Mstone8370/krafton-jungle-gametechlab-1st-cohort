@@ -416,6 +416,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClCompile Include="Engine\Source\Runtime\Physics\CollisionManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Physics\PhysicsManager.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\CubeMapBakePass.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\IBL\IntegrateBRDFBakePass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\IBL\IrradianceBakePass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\Baking\IBL\SpecularPrefilterBakePass.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.cpp" />
@@ -486,6 +487,9 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <None Include="Shaders\W13\W13CameraShader.hlsl" />
     <None Include="Shaders\Bake\EquirectToCube.hlsl" />
     <None Include="Shaders\SkyBoxShader.hlsl" />
+    <None Include="Shaders\Bake\IBL\IntegrateBRDF.hlsl" />
+    <None Include="Shaders\ImageBasedLightingCommon.hlsl" />
+    <None Include="Shaders\BRDF.hlsl" />
     <ClCompile Include="SoundManager.cpp" />
     <None Include="Shaders\CompositingShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -819,6 +823,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <ClInclude Include="Engine\Source\Runtime\Physics\CollisionManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Physics\PhysicsManager.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\CubeMapBakePass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\IBL\IntegrateBRDFBakePass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\IBL\IrradianceBakePass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\Baking\IBL\SpecularPrefilterBakePass.h" />
     <ClInclude Include="Engine\Source\Runtime\Renderer\BillboardRenderPass.h" />
