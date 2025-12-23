@@ -166,9 +166,9 @@ public:
      * @param SamplerPointSlot 포인트 샘플러 슬롯 (필요시)
      */
     void BindResourcesForSampling(
-        uint32_t SpotShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_SpotLight), // 예시 슬롯 번호 조정
-        uint32_t PointShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_PointLight), // << 추가
-        uint32_t DirectionalShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_DirectionalLight),
+        uint32_t SpotShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_SpotLight_Shadow), // 예시 슬롯 번호 조정
+        uint32_t PointShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_PointLight_Shadow), // << 추가
+        uint32_t DirectionalShadowSlot = static_cast<uint32_t>(EShaderSRVSlot::SRV_DirectionalLight_Shadow),
         uint32_t SamplerCmpSlot = 10, // 예시 샘플러 슬롯
         uint32_t SamplerPointSlot = 11 // 예시 샘플러 슬롯
         );

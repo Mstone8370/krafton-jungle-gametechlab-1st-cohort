@@ -171,15 +171,15 @@ float4 DebugCSMColor(uint idx)
     return float4(1, 1, 1, 1); // 나머지 – 흰색
 }
 
-StructuredBuffer<FLightData> LightData : register(t10);
+StructuredBuffer<FLightData> LightData : register(t70);
 
 // Begin Shadow
 SamplerComparisonState ShadowSamplerCmp : register(s10);
 SamplerState ShadowPointSampler : register(s11);
 
-Texture2DArray SpotShadowMapArray : register(t50);
-Texture2DArray DirectionShadowMapArray : register(t51);
-TextureCubeArray PointShadowMapArray : register(t52);
+Texture2DArray SpotShadowMapArray : register(t80);
+Texture2DArray DirectionShadowMapArray : register(t81);
+TextureCubeArray PointShadowMapArray : register(t82);
 
 uint GetCascadeIndex(float ViewDepth)
 {

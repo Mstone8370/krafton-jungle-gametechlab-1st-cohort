@@ -2,6 +2,7 @@
 #include "UObject/Casts.h"
 #include "UpdateLightBufferPass.h"
 
+#include "RendererHelpers.h"
 #include "D3D11RHI/DXDBufferManager.h"
 #include "D3D11RHI/GraphicDevice.h"
 #include "D3D11RHI/DXDShaderManager.h"
@@ -64,7 +65,7 @@ void FUpdateLightBufferPass::Render(const std::shared_ptr<FEditorViewportClient>
 {
     UpdateLightBuffer(Viewport);
     
-    BufferManager->BindStructuredBufferSRV("FLightDataBuffer", 10, EShaderStage::Pixel);
+    BufferManager->BindStructuredBufferSRV("FLightDataBuffer", static_cast<UINT>(EShaderSRVSlot::SRV_LightData), EShaderStage::Pixel);
 }
 
 void FUpdateLightBufferPass::UpdateLightBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport)

@@ -293,8 +293,8 @@ void FShadowRenderPass::RenderAllMeshesForCSM(const std::shared_ptr<FEditorViewp
 void FShadowRenderPass::BindResourcesForSampling()
 {
     ShadowManager->BindResourcesForSampling(
-        static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight),
-        static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalLight),
+        static_cast<UINT>(EShaderSRVSlot::SRV_SpotLight_Shadow),
+        static_cast<UINT>(EShaderSRVSlot::SRV_DirectionalLight_Shadow),
         10
     );
 }

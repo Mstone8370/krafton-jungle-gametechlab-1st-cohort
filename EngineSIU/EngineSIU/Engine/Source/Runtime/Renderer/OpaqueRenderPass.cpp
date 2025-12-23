@@ -195,9 +195,9 @@ void FOpaqueRenderPass::CleanUpRender(const std::shared_ptr<FEditorViewportClien
     Graphics->DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     
     ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_PointLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_DirectionalLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
-    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_SpotLight), 1, NullSRV); // t51 슬롯을 NULL로 설정
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_PointLight_Shadow), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_DirectionalLight_Shadow), 1, NullSRV);
+    Graphics->DeviceContext->PSSetShaderResources(static_cast<int>(EShaderSRVSlot::SRV_SpotLight_Shadow), 1, NullSRV);
     // Begin IBL
     Graphics->DeviceContext->PSSetShaderResources(9, 1, NullSRV);
     // End IBL

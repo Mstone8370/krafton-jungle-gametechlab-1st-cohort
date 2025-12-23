@@ -3,9 +3,10 @@
 
 enum class EShaderSRVSlot : int8
 {
-    SRV_SpotLight = 50,
-    SRV_DirectionalLight = 51,
-    SRV_PointLight = 52,
+    SRV_LightData = 70,
+    SRV_SpotLight_Shadow = 80,
+    SRV_DirectionalLight_Shadow = 81,
+    SRV_PointLight_Shadow = 82,
     SRV_DepthOfField_LayerInfo = 90,
     SRV_DepthOfField_LayerNear = 91,
     SRV_DepthOfField_LayerFar = 92,

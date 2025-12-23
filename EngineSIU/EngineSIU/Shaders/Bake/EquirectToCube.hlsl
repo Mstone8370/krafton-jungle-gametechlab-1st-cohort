@@ -35,6 +35,4 @@ void main(uint3 DispatchThreadID : SV_DispatchThreadID)
     float3 Color = SourceTexture.SampleLevel(SamplerLinearWrap, UV, 0).rgb;
     
     OutputCubeMap[DispatchThreadID.xyz] = float4(Color, 1.0f);
-    //OutputCubeMap[DispatchThreadID.xyz] = float4(Direction, 1.f);
-    //OutputCubeMap[DispatchThreadID.xyz] = float4(UV, 0.f, 1.f);
 }
