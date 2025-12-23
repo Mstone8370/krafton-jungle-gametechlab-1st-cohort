@@ -54,5 +54,5 @@ VS_OUTPUT mainVS(uint VertexID : SV_VertexID)
 
 float4 mainPS(VS_OUTPUT Input) : SV_Target
 {
-    return SkyBoxTexture.Sample(SamplerLinearClamp, normalize(Input.UV));
+    return SkyBoxTexture.SampleLevel(SamplerLinearClamp, normalize(Input.UV), 0);
 }

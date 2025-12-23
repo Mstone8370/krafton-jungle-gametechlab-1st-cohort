@@ -37,9 +37,9 @@ void FCubeMapBakePass::Render(const std::shared_ptr<FEditorViewportClient>& View
     Desc.SampleDesc.Count = 1;
     Desc.SampleDesc.Quality = 0;
     Desc.Usage = D3D11_USAGE_DEFAULT;
-    Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+    Desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
     Desc.CPUAccessFlags = 0;
-    Desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+    Desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
     
     HRESULT hr = Graphics->Device->CreateTexture2D(&Desc, nullptr, &CubeMapTexture);
     if (FAILED(hr))
@@ -64,7 +64,7 @@ void FCubeMapBakePass::Render(const std::shared_ptr<FEditorViewportClient>& View
     SRVDesc.Format = Desc.Format;
     SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
     SRVDesc.TextureCube.MostDetailedMip = 0;
-    SRVDesc.TextureCube.MipLevels = 1;
+    SRVDesc.TextureCube.MipLevels = -1;
     
     hr = Graphics->Device->CreateShaderResourceView(CubeMapTexture, &SRVDesc, &CubeMapSRV);
     if (FAILED(hr))
@@ -94,6 +94,8 @@ void FCubeMapBakePass::Render(const std::shared_ptr<FEditorViewportClient>& View
         Desc.Height / ThreadGroupSize,
         6
     );
+    
+    Graphics->DeviceContext->GenerateMips(CubeMapSRV);
     
     // end
     ID3D11ShaderResourceView* NullSRV = nullptr;
