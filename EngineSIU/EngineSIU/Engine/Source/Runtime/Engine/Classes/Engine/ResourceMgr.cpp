@@ -51,7 +51,7 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     // Begin IBL
     std::wstring IBLPath = L"Assets/Texture/IBL/sunny_rose_garden_4k.hdr";
     //IBLPath = L"Assets/Texture/IBL/university_workshop_4k.hdr";
-    //IBLPath = L"Assets/Texture/IBL/photo_studio_loft_hall_4k.hdr";
+    IBLPath = L"Assets/Texture/IBL/photo_studio_loft_hall_4k.hdr";
     LoadTextureFromHDR(Device->Device, IBLPath.c_str());
     FEngineLoop::Renderer.BakeEnvironmentMap(IBLPath);
     

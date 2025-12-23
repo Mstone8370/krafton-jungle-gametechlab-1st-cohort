@@ -59,6 +59,11 @@ float3 F_Schlick(float3 F0, float VoH)
     return Fc + (1 - Fc) * F0;
 }
 
+float3 F_SchlickRoughness(float3 F0, float CosTheta, float Roughness)
+{
+    return F0 + (max(float3(1.0 - Roughness, 1.0 - Roughness, 1.0 - Roughness), F0) - F0) * Pow5(1.0 - CosTheta);
+}
+
 float D_GGX(float NoH, float a2)
 {
     float d = ( NoH * a2 - NoH ) * NoH + 1;

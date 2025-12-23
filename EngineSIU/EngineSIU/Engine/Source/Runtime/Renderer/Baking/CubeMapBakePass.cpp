@@ -88,7 +88,7 @@ void FCubeMapBakePass::Render(const std::shared_ptr<FEditorViewportClient>& View
     Graphics->DeviceContext->CSSetShader(ComputeShader, nullptr, 0);
     
     // run
-    UINT ThreadGroupSize = 32;
+    constexpr UINT ThreadGroupSize = 32;
     const UINT NumGroupsX = (Desc.Width + ThreadGroupSize - 1) / ThreadGroupSize;
     const UINT NumGroupsY = (Desc.Height + ThreadGroupSize - 1) / ThreadGroupSize;
     Graphics->DeviceContext->Dispatch(

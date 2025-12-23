@@ -190,6 +190,14 @@ void FOpaqueRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
             &EnvCubeMap->TextureSRV
         );
     }
+    if (std::shared_ptr<FTexture> EnvIrradiance = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentIrradiance"))
+    {
+        Graphics->DeviceContext->PSSetShaderResources(
+            static_cast<UINT>(EShaderSRVSlot::SRV_EnvironmentIrradiance),
+            1,
+            &EnvIrradiance->TextureSRV
+        );
+    }
     if (std::shared_ptr<FTexture> EnvPrefilter = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentPrefilter"))
     {
         Graphics->DeviceContext->PSSetShaderResources(

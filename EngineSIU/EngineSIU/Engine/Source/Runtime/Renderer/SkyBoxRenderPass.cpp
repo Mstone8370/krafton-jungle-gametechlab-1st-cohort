@@ -48,6 +48,10 @@ void FSkyBoxRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
     {
         Graphics->DeviceContext->PSSetShaderResources(0, 1, &PrefilterTexture->TextureSRV);
     }
+    if (const std::shared_ptr<FTexture> IrradianceTexture = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentIrradiance"))
+    {
+        Graphics->DeviceContext->PSSetShaderResources(0, 1, &IrradianceTexture->TextureSRV);
+    }
     */
     // End TEMP
     if (const std::shared_ptr<FTexture> EnvCubeMapTexture = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentCubeMap"))

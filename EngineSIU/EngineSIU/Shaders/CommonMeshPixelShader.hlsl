@@ -177,10 +177,29 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 #ifdef LIGHTING_MODEL_PBR
     float3 N = WorldNormal;
     float3 V = normalize(ViewWorldLocation - Input.WorldPosition);
+    float NoV = saturate(dot(N, V));
+    
     float3 F0 = lerp(0.04, DiffuseColor, Metallic);
     
-    //FinalPixelColor.rgb += SpecularIBL_Reference(F0, Roughness, N, V);
-    FinalPixelColor.rgb += SpecularIBL_SplitSumApprox(F0, Roughness, N, V);
+    // Env Diffuse
+    float3 F = F_SchlickRoughness(F0, NoV, Roughness);
+    float3 Ks = F;
+    
+    float3 Kd = 1.0 - Ks;
+    float KdScale = 1.0 - Metallic;
+    Kd *= KdScale;
+    
+    float3 Irradiance = EnvironmentIrradiance.SampleLevel(SamplerLinearClamp, N, 0).rgb;
+    float3 DiffuseIBL = Irradiance * DiffuseColor;
+    
+    // Env Specular
+    //float3 SpecularIBL = SpecularIBL_Reference(F0, Roughness, N, V);
+    float3 SpecularIBL = SpecularIBL_SplitSumApprox(F0, Roughness, N, V);
+    
+    float AmbientOcclusion = 1.0f;
+    float3 AmbientColor = (Kd * DiffuseIBL + SpecularIBL) * AmbientOcclusion;
+    
+    FinalPixelColor.rgb += AmbientColor;
 #endif
 
     return FinalPixelColor;

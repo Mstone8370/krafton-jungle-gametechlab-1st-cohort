@@ -93,6 +93,26 @@ float3 ImportanceSampleGGX(float2 Xi, float Roughness, float3 N)
     return TangentX * H.x + TangentY * H.y + N * H.z;
 }
 
+float3 ImportanceSampleCosine(float2 Xi, float3 N)
+{
+    float Phi = 2 * PI * Xi.x;
+    float CosTheta = sqrt(1.0 - Xi.y);
+    float SinTheta = sqrt(Xi.y);
+    
+    float3 H;
+    H.x = SinTheta * cos(Phi);
+    H.y = SinTheta * sin(Phi);
+    H.z = CosTheta;
+    
+    float3 UpVector = abs(N.z) < 0.999 ? float3(0, 0, 1) : float3(1, 0, 0);
+    float3 TangentX = normalize(cross(UpVector, N));
+    float3 TangentY = cross(N, TangentX);
+    
+    return TangentX * H.x + TangentY * H.y + N * H.z;
+}
+
+
+
 float3 SpecularIBL_Reference(float3 SpecularColor, float Roughness, float3 N, float3 V)
 {
     float3 SpecularLighting = 0;

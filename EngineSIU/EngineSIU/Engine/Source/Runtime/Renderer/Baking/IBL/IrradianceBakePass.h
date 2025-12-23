@@ -1,21 +1,21 @@
 #pragma once
 
 #include "RenderPassBase.h"
-#include "Container/Map.h"
-#include "Container/Queue.h"
 
-struct ID3D11Texture3D;
+struct ID3D11Texture2D;
+struct ID3D11ShaderResourceView;
+struct ID3D11UnorderedAccessView;
 
 class FIrradianceBakePass : public FRenderPassBase
 {
 public:
+    FIrradianceBakePass();
+    
     virtual void Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager) override;
     virtual void PrepareRenderArr() override;
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
 
-    void EnqueueIrradianceBake(const FWString& FilePath);
-    
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
@@ -25,7 +25,9 @@ protected:
     virtual void Release() override;
     
 private:
-    TQueue<FWString> BakeQueue;
+    ID3D11Texture2D* Texture;
+    ID3D11ShaderResourceView* SRV;
+    ID3D11UnorderedAccessView* UAV;
     
-    TMap<FWString, ID3D11Texture3D*> IrradianceMap;
+    uint32 TextureSize;
 };
