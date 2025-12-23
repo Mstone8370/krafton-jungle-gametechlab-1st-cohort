@@ -179,7 +179,8 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     float3 V = normalize(ViewWorldLocation - Input.WorldPosition);
     float3 F0 = lerp(0.04, DiffuseColor, Metallic);
     
-    FinalPixelColor.rgb += SpecularIBL_Reference(F0, Roughness, N, V);
+    //FinalPixelColor.rgb += SpecularIBL_Reference(F0, Roughness, N, V);
+    FinalPixelColor.rgb += SpecularIBL_SplitSumApprox(F0, Roughness, N, V);
 #endif
 
     return FinalPixelColor;

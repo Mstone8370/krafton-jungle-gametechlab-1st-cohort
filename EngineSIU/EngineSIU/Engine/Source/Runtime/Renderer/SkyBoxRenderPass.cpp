@@ -44,9 +44,9 @@ void FSkyBoxRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
     
     // Begin TEMP
     /*
-    if (const std::shared_ptr<FTexture> PreFilterTexture = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentPreFilter"))
+    if (const std::shared_ptr<FTexture> PrefilterTexture = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentPrefilter"))
     {
-        Graphics->DeviceContext->PSSetShaderResources(0, 1, &PreFilterTexture->TextureSRV);
+        Graphics->DeviceContext->PSSetShaderResources(0, 1, &PrefilterTexture->TextureSRV);
     }
     */
     // End TEMP

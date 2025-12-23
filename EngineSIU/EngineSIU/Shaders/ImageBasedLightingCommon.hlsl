@@ -109,7 +109,8 @@ float3 SpecularIBL_Reference(float3 SpecularColor, float Roughness, float3 N, fl
         if (NoL > 0)
         {
             float3 SampleColor = EnvironmentMap.SampleLevel(SamplerLinearClamp, L, 0).rgb;
-            SampleColor = saturate(SampleColor);
+            SampleColor = min(SampleColor, 5.0);
+            
             float alpha = Roughness * Roughness;
             
             float NoV = saturate(dot(N, V));
@@ -127,6 +128,19 @@ float3 SpecularIBL_Reference(float3 SpecularColor, float Roughness, float3 N, fl
     }
     
     return SpecularLighting / NumSamples;
+}
+
+float3 SpecularIBL_SplitSumApprox(float3 SpecularColor, float Roughness, float3 N, float3 V)
+{
+    float NoV = saturate(dot(N, V));
+    float3 R = 2 * dot(V, N) * N - V;
+    
+    float PrefilterLod = Roughness * (9 - 1);
+    
+    float3 PrefilteredColor = EnvironmentPrefilter.SampleLevel(SamplerLinearClamp, R, PrefilterLod).rgb;
+    float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;
+    
+    return PrefilteredColor * (SpecularColor * EnvBRDF.x + EnvBRDF.y);
 }
 
 #endif

@@ -490,7 +490,7 @@ xcopy /y /d "$(SolutionDir)$(ProjectName)\Engine\Source\ThirdParty\Physics\$(Con
     <None Include="Shaders\Bake\IBL\IntegrateBRDF.hlsl" />
     <None Include="Shaders\ImageBasedLightingCommon.hlsl" />
     <None Include="Shaders\BRDF.hlsl" />
-    <None Include="Shaders\Bake\IBL\EnvironmentPreFilter.hlsl" />
+    <None Include="Shaders\Bake\IBL\EnvironmentPrefilter.hlsl" />
     <ClCompile Include="SoundManager.cpp" />
     <None Include="Shaders\CompositingShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

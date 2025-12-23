@@ -6,11 +6,12 @@
 #include "Engine/Texture.h"
 
 FSpecularPrefilterBakePass::FSpecularPrefilterBakePass()
-    : MaxReflectionLod(10)
+    : MaxReflectionLod(9)
     , TextureSize(0)
-    , PreFilterTexture(nullptr) 
-    , PreFilterSRV(nullptr)
-    , PreFilterData()
+    , ConstantBuffer(nullptr)
+    , PrefilterTexture(nullptr) 
+    , PrefilterSRV(nullptr)
+    , PrefilterData()
 {}
 
 void FSpecularPrefilterBakePass::Initialize(FDXDBufferManager* InBufferManager, FGraphicsDevice* InGraphics, FDXDShaderManager* InShaderManager)
@@ -32,24 +33,25 @@ void FSpecularPrefilterBakePass::Render(const std::shared_ptr<FEditorViewportCli
 {
     PrepareRender(Viewport);
     
-    const int32 NumMipLevels = static_cast<int32>(PreFilterUAVs.Num());
+    const int32 NumMipLevels = static_cast<int32>(PrefilterUAVs.Num());
     for (int32 i = 0; i < NumMipLevels; ++i)
     {
         // Bind UAV
-        Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &PreFilterUAVs[i], nullptr);
+        Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &PrefilterUAVs[i], nullptr);
         
         // Update Constant Buffer
         const float Roughness = static_cast<float>(i) / static_cast<float>(NumMipLevels - 1);
-        PreFilterData.Roughness = Roughness;
-        BufferManager->BindConstantBuffer("FPreFilterData", 0, EShaderStage::Compute);
-        BufferManager->UpdateConstantBuffer("FPreFilterData", PreFilterData);
+        PrefilterData.Roughness = Roughness;
+        BufferManager->BindConstantBuffer("FPrefilterData", 0, EShaderStage::Compute);
+        BufferManager->UpdateConstantBuffer("FPrefilterData", PrefilterData);
         
         // Run
-        const uint32 CurrentTextureSize = FMath::Max(TextureSize >> i, 1u);
         constexpr UINT ThreadGroupSize = 32;
+        const uint32 CurrentTextureSize = FMath::Max(TextureSize >> i, 1u);
+        const UINT NumGroups = (CurrentTextureSize + ThreadGroupSize - 1) / ThreadGroupSize;
         Graphics->DeviceContext->Dispatch(
-            CurrentTextureSize / ThreadGroupSize, 
-            CurrentTextureSize / ThreadGroupSize, 
+            NumGroups, 
+            NumGroups, 
             6
         );
     }
@@ -68,8 +70,8 @@ void FSpecularPrefilterBakePass::PrepareRender(const std::shared_ptr<FEditorView
     
     D3D11_TEXTURE2D_DESC CubeMapDesc;
     CubeMapTexture->Texture->GetDesc(&CubeMapDesc);
-    PreFilterData.SourceTextureSize = CubeMapDesc.Width;
-    PreFilterData.SourceNumMipLevels = CubeMapDesc.MipLevels;
+    PrefilterData.SourceTextureSize = CubeMapDesc.Width;
+    PrefilterData.SourceNumMipLevels = CubeMapDesc.MipLevels;
     
     TextureSize = CubeMapDesc.Width / 2; // 반사용으로 쓰일거니 해상도를 적당히 낮춤 (256 or 512)
     
@@ -87,7 +89,7 @@ void FSpecularPrefilterBakePass::PrepareRender(const std::shared_ptr<FEditorView
     TextureDesc.CPUAccessFlags = 0;
     TextureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
     
-    HRESULT hr = Graphics->Device->CreateTexture2D(&TextureDesc, nullptr, &PreFilterTexture);
+    HRESULT hr = Graphics->Device->CreateTexture2D(&TextureDesc, nullptr, &PrefilterTexture);
     if (FAILED(hr))
     {
         return;
@@ -100,7 +102,7 @@ void FSpecularPrefilterBakePass::PrepareRender(const std::shared_ptr<FEditorView
     SrvDesc.TextureCube.MostDetailedMip = 0;
     SrvDesc.TextureCube.MipLevels = -1;
     
-    hr = Graphics->Device->CreateShaderResourceView(PreFilterTexture, &SrvDesc, &PreFilterSRV);
+    hr = Graphics->Device->CreateShaderResourceView(PrefilterTexture, &SrvDesc, &PrefilterSRV);
     if (FAILED(hr))
     {
         return;
@@ -108,10 +110,10 @@ void FSpecularPrefilterBakePass::PrepareRender(const std::shared_ptr<FEditorView
     
     // Create UAVs
     D3D11_TEXTURE2D_DESC TextureDesc_Created;
-    PreFilterTexture->GetDesc(&TextureDesc_Created);
+    PrefilterTexture->GetDesc(&TextureDesc_Created);
     
     const int32 NumMipLevels = static_cast<int32>(TextureDesc_Created.MipLevels);
-    PreFilterUAVs.SetNum(NumMipLevels);
+    PrefilterUAVs.SetNum(NumMipLevels);
     
     D3D11_UNORDERED_ACCESS_VIEW_DESC UavDesc = {};
     UavDesc.Format = TextureDesc.Format;
@@ -123,7 +125,7 @@ void FSpecularPrefilterBakePass::PrepareRender(const std::shared_ptr<FEditorView
     {
         UavDesc.Texture2DArray.MipSlice = i;
         
-        hr = Graphics->Device->CreateUnorderedAccessView(PreFilterTexture, &UavDesc, &PreFilterUAVs[i]);
+        hr = Graphics->Device->CreateUnorderedAccessView(PrefilterTexture, &UavDesc, &PrefilterUAVs[i]);
         if (FAILED(hr))
         {
             return;
@@ -131,10 +133,10 @@ void FSpecularPrefilterBakePass::PrepareRender(const std::shared_ptr<FEditorView
     }
     
     // Create Constant Buffer
-    hr = BufferManager->CreateBufferGeneric<FPreFilterData>(
-        "FPreFilterData", 
+    hr = BufferManager->CreateBufferGeneric<FPrefilterData>(
+        "FPrefilterData", 
         nullptr, 
-        sizeof(FPreFilterData),
+        sizeof(FPrefilterData),
         D3D11_BIND_CONSTANT_BUFFER,
         D3D11_USAGE_DYNAMIC,
         D3D11_CPU_ACCESS_WRITE
@@ -151,14 +153,14 @@ void FSpecularPrefilterBakePass::PrepareRender(const std::shared_ptr<FEditorView
         { nullptr, nullptr }
     };
     
-    hr = ShaderManager->AddComputeShader(L"EnvironmentPreFilterBake", L"Shaders/Bake/IBL/EnvironmentPreFilter.hlsl", "main", Defines);
+    hr = ShaderManager->AddComputeShader(L"EnvironmentPrefilterBake", L"Shaders/Bake/IBL/EnvironmentPrefilter.hlsl", "main", Defines);
     if (FAILED(hr))
     {
         return;
     }
     
     // Bind Shader
-    ID3D11ComputeShader* ComputeShader = ShaderManager->GetComputeShaderByKey(L"EnvironmentPreFilterBake");
+    ID3D11ComputeShader* ComputeShader = ShaderManager->GetComputeShaderByKey(L"EnvironmentPrefilterBake");
     Graphics->DeviceContext->CSSetShader(ComputeShader, nullptr, 0);
     
     // Bind SRV
@@ -185,15 +187,15 @@ void FSpecularPrefilterBakePass::CleanUpRender(const std::shared_ptr<FEditorView
     BufferManager->BindConstantBuffer("", 0, EShaderStage::Compute);
     
     // Release UAVs
-    for (auto& UAV : PreFilterUAVs)
+    for (auto& UAV : PrefilterUAVs)
     {
         UAV->Release();
     }
-    PreFilterUAVs.Empty();
+    PrefilterUAVs.Empty();
     
     // Add Texture
-    FWString TextureName = L"EnvironmentPreFilter";
-    std::shared_ptr<FTexture> TextureAsset = std::make_shared<FTexture>(PreFilterSRV, PreFilterTexture, ESamplerType::Linear, TextureName, TextureSize, TextureSize);
+    FWString TextureName = L"EnvironmentPrefilter";
+    std::shared_ptr<FTexture> TextureAsset = std::make_shared<FTexture>(PrefilterSRV, PrefilterTexture, ESamplerType::Linear, TextureName, TextureSize, TextureSize);
     FEngineLoop::ResourceManager.AddTexture(TextureName, std::move(TextureAsset));
 }
 

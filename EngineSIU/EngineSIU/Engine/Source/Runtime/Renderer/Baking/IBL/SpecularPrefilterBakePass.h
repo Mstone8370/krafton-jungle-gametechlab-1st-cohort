@@ -32,11 +32,11 @@ private:
     uint32 TextureSize;
     
     ID3D11Buffer* ConstantBuffer;
-    ID3D11Texture2D* PreFilterTexture;
-    ID3D11ShaderResourceView* PreFilterSRV;
-    TArray<ID3D11UnorderedAccessView*> PreFilterUAVs;
+    ID3D11Texture2D* PrefilterTexture;
+    ID3D11ShaderResourceView* PrefilterSRV;
+    TArray<ID3D11UnorderedAccessView*> PrefilterUAVs;
     
-    struct FPreFilterData
+    struct FPrefilterData
     {
         float Roughness = 0.0f;
         
@@ -47,5 +47,5 @@ private:
         int32 Padding;
     };
     
-    FPreFilterData PreFilterData;
+    FPrefilterData PrefilterData;
 };

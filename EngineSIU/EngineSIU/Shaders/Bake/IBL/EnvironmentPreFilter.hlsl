@@ -5,7 +5,7 @@
 #define NUM_SAMPLES 2048
 #endif
 
-cbuffer FPreFilterData : register(b0)
+cbuffer FPrefilterData : register(b0)
 {
     float Roughness;
     
@@ -13,7 +13,7 @@ cbuffer FPreFilterData : register(b0)
     
     uint SourceNumMipLevels; // 원본 큐브맵의 밉맵 개수
     
-    int FPreFilterData_Padding;
+    int FPrefilterData_Padding;
 }
 
 TextureCube SourceTexture : register(t0);
@@ -45,7 +45,7 @@ float3 PrefilterEnvMap(float Roughness, float3 R)
             float a = Roughness * Roughness;
             float a2 = a * a;
             
-            float Pdf = D_GGX(NoH, a2) * NoH * rcp(4.0 * VoH);
+            float Pdf = D_GGX(NoH, a2) * NoH / (4.0 * VoH + 0.0001);
             
             float OmegaS = 1.0 / (NUM_SAMPLES * Pdf + 0.0001);
             float OmegaP = 4.0 * PI / (6.0 * SourceResolution * SourceResolution);
@@ -53,7 +53,7 @@ float3 PrefilterEnvMap(float Roughness, float3 R)
             float MipLevel = bFullReflection ? 0.0 : clamp(0.5 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
             
             float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, MipLevel).rgb * NoL;
-            SampledColor = min(SampledColor, 100.0); // HDR 값의 과도하게 높은 값 때문에 노이즈가 발생하여 적당히 제한.
+            SampledColor = min(SampledColor, 5.0); // HDR 값의 과도하게 높은 값 때문에 노이즈가 발생하여 적당히 제한.
             
             PrefilteredColor += SampledColor;
             TotalWeight += NoL;

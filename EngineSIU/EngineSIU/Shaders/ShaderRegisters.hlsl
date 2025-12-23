@@ -75,6 +75,9 @@ Texture2D MaterialTextures[9] : register(t0);
 
 // Begin IBL
 TextureCube EnvironmentMap : register(t9);
+TextureCube EnvironmentIrradiance : register(t10);
+TextureCube EnvironmentPrefilter : register(t11);
+Texture2D EnvironmentBRDF : register(t12);
 // End IBL
 
 SamplerState SamplerLinearWrap : register(s0);

@@ -182,9 +182,29 @@ void FOpaqueRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 0);
     
     // Begin IBL
-    if (std::shared_ptr<FTexture> EnvCubeMap = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentPreFilter"))
+    if (std::shared_ptr<FTexture> EnvCubeMap = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentCubeMap"))
     {
-        Graphics->DeviceContext->PSSetShaderResources(9, 1, &EnvCubeMap->TextureSRV);
+        Graphics->DeviceContext->PSSetShaderResources(
+            static_cast<UINT>(EShaderSRVSlot::SRV_EnvironmentMap),
+            1,
+            &EnvCubeMap->TextureSRV
+        );
+    }
+    if (std::shared_ptr<FTexture> EnvPrefilter = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentPrefilter"))
+    {
+        Graphics->DeviceContext->PSSetShaderResources(
+            static_cast<UINT>(EShaderSRVSlot::SRV_EnvironmentPrefilter),
+            1,
+            &EnvPrefilter->TextureSRV
+        );
+    }
+    if (std::shared_ptr<FTexture> EnvBRDF = FEngineLoop::ResourceManager.GetTexture(L"Assets/Texture/IBL/LUT/EnvironmentBRDF.dds"))
+    {
+        Graphics->DeviceContext->PSSetShaderResources(
+            static_cast<UINT>(EShaderSRVSlot::SRV_EnvironmentBRDF),
+            1,
+            &EnvBRDF->TextureSRV
+        );
     }
     // End IBL
 }

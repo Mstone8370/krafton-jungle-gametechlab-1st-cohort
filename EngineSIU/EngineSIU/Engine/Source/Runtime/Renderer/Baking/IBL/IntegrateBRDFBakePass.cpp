@@ -45,9 +45,10 @@ void FIntegrateBRDFBakePass::Bake(const FWString& Path)
     
     // run
     UINT ThreadGroupSize = 32;
+    const UINT NumGroups = (TextureSize + ThreadGroupSize - 1) / ThreadGroupSize;
     Graphics->DeviceContext->Dispatch(
-        TextureSize / ThreadGroupSize, 
-        TextureSize / ThreadGroupSize,
+        NumGroups, 
+        NumGroups,
         1
     );
     

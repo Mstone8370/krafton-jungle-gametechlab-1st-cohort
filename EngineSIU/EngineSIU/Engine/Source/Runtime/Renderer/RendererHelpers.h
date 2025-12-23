@@ -3,6 +3,10 @@
 
 enum class EShaderSRVSlot : int8
 {
+    SRV_EnvironmentMap = 9,
+    SRV_EnvironmentIrradiance = 10,
+    SRV_EnvironmentPrefilter = 11,
+    SRV_EnvironmentBRDF = 12,
     SRV_LightData = 70,
     SRV_SpotLight_Shadow = 80,
     SRV_DirectionalLight_Shadow = 81,
