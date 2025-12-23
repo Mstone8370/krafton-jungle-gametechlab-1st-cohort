@@ -22,21 +22,11 @@ void FSkyBoxRenderPass::ClearRenderArr()
 
 void FSkyBoxRenderPass::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
-    if (!CubeMapSRV)
-    {
-        return;
-    }
-    
     PrepareRender(Viewport);
     
     Graphics->DeviceContext->Draw(36, 0);
     
     CleanUpRender(Viewport);
-}
-
-void FSkyBoxRenderPass::SetCubeMapSRV(ID3D11ShaderResourceView* InCubeMapSRV)
-{
-    CubeMapSRV = InCubeMapSRV;
 }
 
 void FSkyBoxRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
@@ -52,7 +42,18 @@ void FSkyBoxRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
     Graphics->DeviceContext->VSSetShader(VertexShader, nullptr, 0);
     Graphics->DeviceContext->PSSetShader(PixelShader, nullptr, 0);
     
-    Graphics->DeviceContext->PSSetShaderResources(0, 1, &CubeMapSRV);
+    // Begin TEMP
+    /*
+    if (const std::shared_ptr<FTexture> PreFilterTexture = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentPreFilter"))
+    {
+        Graphics->DeviceContext->PSSetShaderResources(0, 1, &PreFilterTexture->TextureSRV);
+    }
+    */
+    // End TEMP
+    if (const std::shared_ptr<FTexture> EnvCubeMapTexture = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentCubeMap"))
+    {
+        Graphics->DeviceContext->PSSetShaderResources(0, 1, &EnvCubeMapTexture->TextureSRV);
+    }
 
     constexpr EResourceType ResourceType = EResourceType::ERT_Scene;
     FViewportResource* ViewportResource = Viewport->GetViewportResource();

@@ -12,8 +12,6 @@ public:
     virtual void ClearRenderArr() override;
     virtual void Render(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     
-    void SetCubeMapSRV(ID3D11ShaderResourceView* InCubeMapSRV);
-
 protected:
     virtual void PrepareRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
     virtual void CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport) override;
@@ -21,7 +19,4 @@ protected:
     virtual void CreateResource() override;
 
     virtual void Release() override;
-    
-private:
-    ID3D11ShaderResourceView* CubeMapSRV = nullptr;
 };

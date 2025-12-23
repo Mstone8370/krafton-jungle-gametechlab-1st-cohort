@@ -149,6 +149,9 @@ void FIntegrateBRDFBakePass::CleanUpRender(const std::shared_ptr<FEditorViewport
     // Unbind UAV
     ID3D11UnorderedAccessView* NullUAV[] = { UAV };
     Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, NullUAV, nullptr);
+    
+    // Release UAV
+    UAV->Release();
 }
 
 void FIntegrateBRDFBakePass::CreateResource()

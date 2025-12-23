@@ -529,9 +529,6 @@ void FRenderer::BakeIBL()
     CubeMapBakePass->Render(DummyViewport);
     IrradianceBakePass->Render(DummyViewport);
     SpecularPrefilterBakePass->Render(DummyViewport);
-    
-    SkyBoxRenderPass->SetCubeMapSRV(CubeMapBakePass->GetCubeMapSRV());
-    OpaqueRenderPass->SkyBoxSRV = CubeMapBakePass->GetCubeMapSRV();
 }
 
 void FRenderer::BakeEnvironmentMap(const FWString& Texture2DName)

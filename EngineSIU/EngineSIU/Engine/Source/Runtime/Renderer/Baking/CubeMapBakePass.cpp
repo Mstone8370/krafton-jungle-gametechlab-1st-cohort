@@ -103,6 +103,14 @@ void FCubeMapBakePass::Render(const std::shared_ptr<FEditorViewportClient>& View
     
     ID3D11UnorderedAccessView* NullUAV = nullptr;
     Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &NullUAV, nullptr);
+    
+    // Add Texture Asset
+    FWString TextureName = L"EnvironmentCubeMap";
+    std::shared_ptr<FTexture> TextureAsset = std::make_shared<FTexture>(CubeMapSRV, CubeMapTexture, ESamplerType::Linear, TextureName, TextureSize, TextureSize);
+    FEngineLoop::ResourceManager.AddTexture(TextureName, std::move(TextureAsset));
+    
+    // Release UAV
+    CubeMapUAV->Release();
 }
 
 void FCubeMapBakePass::EnqueueCubeMapBake(const FWString& FilePath)

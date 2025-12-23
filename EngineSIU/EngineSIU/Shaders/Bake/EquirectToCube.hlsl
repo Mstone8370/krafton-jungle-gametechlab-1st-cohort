@@ -1,10 +1,8 @@
 
-SamplerState SamplerLinearWrap : register(s0);
+#include "Shaders/ImageBasedLightingCommon.hlsl"
 
 Texture2D SourceTexture : register(t0);
 RWTexture2DArray<float4> OutputCubeMap : register(u0);
-
-static const float PI = 3.14159265359;
 
 float2 SampleSphericalMap(float3 Direction)
 {
@@ -16,38 +14,6 @@ float2 SampleSphericalMap(float3 Direction)
     UV += 0.5;
     
     return UV;
-}
-
-float3 GetDirection(uint3 DispatchThreadID, float CubeMapWidth, float CubeMapHeight)
-{
-    const uint FaceIndex = DispatchThreadID.z;
-    
-    float2 UV = float2(DispatchThreadID.xy) / float2(CubeMapWidth, CubeMapHeight);
-    float2 Scan = UV * 2.0f - 1.0f;
-    
-    float3 Direction;
-    switch (FaceIndex)
-    {
-    case 0: // Right  (DirectX Coord: +X)
-        Direction = float3(1.0f, -Scan.y, -Scan.x);
-        break;
-    case 1: // Left   (DirectX Coord: -X)
-        Direction = float3(-1.0f, -Scan.y, Scan.x);
-        break;
-    case 2: // Top    (DirectX Coord: +Y)
-        Direction = float3(Scan.x, 1.0f, Scan.y);
-        break;
-    case 3: // Bottom (DirectX Coord: -Y)
-        Direction = float3(Scan.x, -1.0f, -Scan.y);
-        break;
-    case 4: // Front  (DirectX Coord: +Z)
-        Direction = float3(Scan.x, -Scan.y, 1.0f);
-        break;
-    case 5: // Back   (DirectX Coord: -Z)
-        Direction = float3(-Scan.x, -Scan.y, -1.0f);
-        break;
-    }
-    return normalize(Direction);
 }
 
 [numthreads(THREADS_X, THREADS_Y, 1)]

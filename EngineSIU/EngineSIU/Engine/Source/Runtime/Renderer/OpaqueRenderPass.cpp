@@ -182,9 +182,9 @@ void FOpaqueRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
     Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 0);
     
     // Begin IBL
-    if (SkyBoxSRV)
+    if (std::shared_ptr<FTexture> EnvCubeMap = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentPreFilter"))
     {
-        Graphics->DeviceContext->PSSetShaderResources(9, 1, &SkyBoxSRV);
+        Graphics->DeviceContext->PSSetShaderResources(9, 1, &EnvCubeMap->TextureSRV);
     }
     // End IBL
 }
