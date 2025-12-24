@@ -49,12 +49,6 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     // End W13
     
     // Begin IBL
-    std::wstring IBLPath = L"Assets/Texture/IBL/sunny_rose_garden_4k.hdr";
-    //IBLPath = L"Assets/Texture/IBL/university_workshop_4k.hdr";
-    IBLPath = L"Assets/Texture/IBL/photo_studio_loft_hall_4k.hdr";
-    LoadTextureFromHDR(Device->Device, IBLPath.c_str());
-    FEngineLoop::Renderer.BakeEnvironmentMap(IBLPath);
-    
     std::wstring EnvironmentBRDFPath = L"Assets/Texture/IBL/LUT/EnvironmentBRDF.dds";
     if (std::filesystem::exists(EnvironmentBRDFPath))
     {
@@ -64,6 +58,12 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     {
         FEngineLoop::Renderer.BakeEnvironmentBRDF(EnvironmentBRDFPath);
     }
+    
+    std::wstring IBLPath = L"Assets/Texture/IBL/sunny_rose_garden_4k.hdr";
+    IBLPath = L"Assets/Texture/IBL/university_workshop_4k.hdr";
+    //IBLPath = L"Assets/Texture/IBL/photo_studio_loft_hall_4k.hdr";
+    LoadTextureFromHDR(Device->Device, IBLPath.c_str());
+    FEngineLoop::Renderer.BakeEnvironmentMap(IBLPath);
     // End IBL
 }
 

@@ -54,6 +54,10 @@ void FIntegrateBRDFBakePass::Bake(const FWString& Path)
     
     CleanUpRender(DummyViewport);
     
+    // Add Texture
+    std::shared_ptr<FTexture> TextureAsset = std::make_shared<FTexture>(SRV, Texture2D, ESamplerType::Linear, Path, TextureSize, TextureSize);
+    FEngineLoop::ResourceManager.AddTexture(Path, std::move(TextureAsset));
+    
     // Save to Disk
     DirectX::ScratchImage ScratchImage;
     HRESULT hr = DirectX::CaptureTexture(Graphics->Device, Graphics->DeviceContext, Texture2D, ScratchImage);
@@ -139,13 +143,6 @@ void FIntegrateBRDFBakePass::PrepareRender(const std::shared_ptr<FEditorViewport
 void FIntegrateBRDFBakePass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     // TODO: Release Compute Shader
-    
-    // Move To ResourceManager
-    FWString TextureName = L"EnvironmentBRDF";
-    
-    std::shared_ptr<FTexture> TextureAsset = std::make_shared<FTexture>(SRV, Texture2D, ESamplerType::Linear, TextureName, TextureSize, TextureSize);
-    
-    FEngineLoop::ResourceManager.AddTexture(TextureName, std::move(TextureAsset));
     
     // Unbind UAV
     ID3D11UnorderedAccessView* NullUAV[] = { UAV };
