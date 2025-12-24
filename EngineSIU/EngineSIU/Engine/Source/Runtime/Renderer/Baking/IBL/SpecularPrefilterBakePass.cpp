@@ -42,7 +42,6 @@ void FSpecularPrefilterBakePass::Render(const std::shared_ptr<FEditorViewportCli
         // Update Constant Buffer
         const float Roughness = static_cast<float>(i) / static_cast<float>(NumMipLevels - 1);
         PrefilterData.Roughness = Roughness;
-        BufferManager->BindConstantBuffer("FPrefilterData", 0, EShaderStage::Compute);
         BufferManager->UpdateConstantBuffer("FPrefilterData", PrefilterData);
         
         // Run
@@ -145,6 +144,9 @@ void FSpecularPrefilterBakePass::PrepareRender(const std::shared_ptr<FEditorView
     {
         return;
     }
+    
+    // Bind Constant Buffer
+    BufferManager->BindConstantBuffer("FPrefilterData", 0, EShaderStage::Compute);
     
     // Compile Shader
     constexpr D3D_SHADER_MACRO Defines[] = {

@@ -30,4 +30,13 @@ private:
     ID3D11UnorderedAccessView* UAV;
     
     uint32 TextureSize;
+    
+    struct FIrradianceData
+    {
+        uint32 SourceResolution = 0; // 원본 큐브맵의 해상도
+        
+        uint32 SourceNumMipLevels = 0; // 원본 큐브맵의 밉맵 개수
+        
+        uint32 FIrradianceData_Padding[2];
+    };
 };

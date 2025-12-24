@@ -95,6 +95,20 @@ void FIrradianceBakePass::PrepareRender(const std::shared_ptr<FEditorViewportCli
         return;
     }
     
+    // Create Constant Buffer
+    hr = BufferManager->CreateBufferGeneric<FIrradianceData>(
+        "FIrradianceData", 
+        nullptr, 
+        sizeof(FIrradianceData),
+        D3D11_BIND_CONSTANT_BUFFER,
+        D3D11_USAGE_DYNAMIC,
+        D3D11_CPU_ACCESS_WRITE
+    );
+    if (FAILED(hr))
+    {
+        return;
+    }
+    
     // Compile Shader
     constexpr D3D_SHADER_MACRO Defines[] = {
         { "THREADS_X", "32" },
@@ -115,20 +129,41 @@ void FIrradianceBakePass::PrepareRender(const std::shared_ptr<FEditorViewportCli
     // Bind UAV
     Graphics->DeviceContext->CSSetUnorderedAccessViews(0, 1, &UAV, nullptr);
     
+    // Bind Sampler
+    Graphics->DeviceContext->CSSetSamplers(0, 1, &Graphics->SamplerState_LinearWrap);
+    
+    // Constant Buffer Data
+    FIrradianceData Data = {};
+    
     // Bind Source SRV
     if (std::shared_ptr<FTexture> EnvCubeMap = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentCubeMap"))
     {
         Graphics->DeviceContext->CSSetShaderResources(0, 1, &EnvCubeMap->TextureSRV);
+        
+        // Set Constant Buffer Data
+        D3D11_TEXTURE2D_DESC Desc = {};
+        EnvCubeMap->Texture->GetDesc(&Desc);
+        Data.SourceResolution = Desc.Width;
+        Data.SourceNumMipLevels = Desc.MipLevels;
     }
     
+    // Bind Constant Buffer
+    BufferManager->BindConstantBuffer("FPrefilterData", 0, EShaderStage::Compute);
+    
+    // Update Constant Buffer
+    BufferManager->UpdateConstantBuffer<FIrradianceData>("FIrradianceData", Data);
+    
     // Bind Sampler
-    Graphics->DeviceContext->CSSetSamplers(0, 1, &Graphics->SamplerState_LinearWrap);
+    Graphics->DeviceContext->CSSetSamplers(1, 1, &Graphics->SamplerState_LinearClamp);
 }
 
 void FIrradianceBakePass::CleanUpRender(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     // Unbind Shader
     Graphics->DeviceContext->CSSetShader(nullptr, nullptr, 0);
+    
+    // Unbind Constant Buffer
+    BufferManager->BindConstantBuffer("", 0, EShaderStage::Compute);
     
     // Unbind UAV
     ID3D11UnorderedAccessView* NullUAV[] = { nullptr };

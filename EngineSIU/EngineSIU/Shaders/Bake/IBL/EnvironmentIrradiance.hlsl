@@ -2,11 +2,20 @@
 #include "Shaders/ImageBasedLightingCommon.hlsl"
 
 #ifndef NUM_SAMPLES
-#define NUM_SAMPLES 2048
+#define NUM_SAMPLES 4096
 #endif
 
 TextureCube SourceTexture : register(t0);
 RWTexture2DArray<float4> OutputTexture : register(u0);
+
+cbuffer FIrradianceData : register(b0)
+{
+    uint SourceResolution; // 원본 큐브맵의 해상도
+    
+    uint SourceNumMipLevels; // 원본 큐브맵의 밉맵 개수
+    
+    uint2 FIrradianceData_Padding;
+}
 
 float4 IntegrateDiffuseCube(float3 N)
 {
@@ -23,14 +32,13 @@ float4 IntegrateDiffuseCube(float3 N)
             // Filtered Importance Sampling
             float Pdf = NoL / PI;
             
-            float OmegaP = 4.0 * PI / (6.0 * 1024 * 1024);
+            float OmegaP = 4.0 * PI / (6.0 * SourceResolution * SourceResolution);
             float OmegaS = 1.0 / (NUM_SAMPLES * Pdf + 0.0001);
             
-            // 노이즈 때문에 bias를 0.5에서 0.55로 높임
-            float MipLevel = clamp(0.55 * log2(OmegaS / OmegaP), 0, 11);
+            float MipLevel = clamp(0.5 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
             
             float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, MipLevel).rgb;
-            SampledColor = min(SampledColor, 50.0);
+            SampledColor = min(SampledColor, 5.0);
             
             AccumulatedBrdf += SampledColor;
         }

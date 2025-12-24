@@ -2,7 +2,7 @@
 #include "Shaders/ImageBasedLightingCommon.hlsl"
 
 #ifndef NUM_SAMPLES
-#define NUM_SAMPLES 2048
+#define NUM_SAMPLES 1024
 #endif
 
 cbuffer FPrefilterData : register(b0)
@@ -51,11 +51,10 @@ float3 PrefilterEnvMap(float Roughness, float3 R)
             float OmegaP = 4.0 * PI / (6.0 * SourceResolution * SourceResolution);
             float OmegaS = 1.0 / (NUM_SAMPLES * Pdf + 0.0001);
             
-            // 노이즈 때문에 bias를 0.5에서 0.55로 높임
-            float MipLevel = bFullReflection ? 0.0 : clamp(0.55 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
+            float MipLevel = bFullReflection ? 0.0 : clamp(0.5 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
             
             float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, MipLevel).rgb * NoL;
-            SampledColor = min(SampledColor, 50.0);
+            SampledColor = min(SampledColor, 5.0);
             
             PrefilteredColor += SampledColor;
             TotalWeight += NoL;

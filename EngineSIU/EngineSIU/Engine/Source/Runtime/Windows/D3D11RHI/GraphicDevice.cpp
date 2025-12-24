@@ -165,6 +165,7 @@ void FGraphicsDevice::CreateRasterizerState()
     D3D11_RASTERIZER_DESC RasterizerDesc = {};
     RasterizerDesc.FillMode = D3D11_FILL_SOLID;
     RasterizerDesc.CullMode = D3D11_CULL_BACK;
+    RasterizerDesc.MultisampleEnable = true;
     Device->CreateRasterizerState(&RasterizerDesc, &RasterizerSolidBack);
 
     RasterizerDesc.FillMode = D3D11_FILL_SOLID;
