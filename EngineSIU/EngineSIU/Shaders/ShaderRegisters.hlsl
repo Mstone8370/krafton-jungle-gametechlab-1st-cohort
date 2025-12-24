@@ -149,7 +149,9 @@ cbuffer CameraBuffer : register(b13)
     
     float NearClip;
     float FarClip;
-    float2 ProjectionPadding;
+    
+    int EnvPrefilterMaxLod;
+    int CameraBufferPadding;
 }
 
    

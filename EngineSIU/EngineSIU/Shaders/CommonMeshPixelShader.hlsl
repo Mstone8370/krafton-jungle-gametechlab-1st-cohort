@@ -120,7 +120,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     {
         Roughness = MaterialTextures[TEXTURE_SLOT_ROUGHNESS].Sample(SamplerLinearWrap, Input.UV).g;
     }
-    Roughness = max(Roughness, 0.0001);
+    Roughness = max(Roughness, 0.025);
 #endif
     
     // Begin for Tile based light culled result

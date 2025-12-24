@@ -446,7 +446,9 @@ struct FCameraConstantBuffer
 
     float NearClip = 0.f;
     float FarClip = 0.f;
-    FVector2D Padding2 = FVector2D::ZeroVector;
+    
+    int32 EnvPrefilterMaxLod = 0;
+    int32 Padding;
 };
 
 struct FSubUVConstant

@@ -286,6 +286,7 @@ void FRenderer::UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>&
     CameraConstantBuffer.ViewLocation = Viewport->GetCameraLocation();
     CameraConstantBuffer.NearClip = Viewport->GetCameraNearClip();
     CameraConstantBuffer.FarClip = Viewport->GetCameraFarClip();
+    CameraConstantBuffer.EnvPrefilterMaxLod = SpecularPrefilterBakePass->GetMaxReflectionLod();
     BufferManager->UpdateConstantBuffer("FCameraConstantBuffer", CameraConstantBuffer);
 }
 

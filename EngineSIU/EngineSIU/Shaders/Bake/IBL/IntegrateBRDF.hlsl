@@ -3,7 +3,7 @@
 #include "Shaders/ImageBasedLightingCommon.hlsl"
 
 #ifndef NUM_SAMPLES
-#define NUM_SAMPLES 2048
+#define NUM_SAMPLES 1024
 #endif
 
 RWTexture2D<float2> OutputTexture : register(u0);
@@ -35,10 +35,14 @@ float2 IntegrateBRDF(float Roughness, float NoV)
             float VoH = saturate(dot(V, H));
             
             float alpha = Roughness * Roughness;
+            float a2 = alpha * alpha;
             
-            float G = G_Smith(NoV, NoL, alpha);
+            float Vis = Vis_SmithJoint(a2, NoV, NoL);
             
-            float G_Vis = G * VoH / (NoH * NoV);
+            // 직접광에 사용하는 SmithJoint에 맞게 수정
+            // G_Vis = G * VoH / (NoH * NoV)
+            float G_Vis = Vis * 4.0 * VoH * NoL / NoH;
+            
             float Fc = Pow5(1 - VoH);
             A += (1 - Fc) * G_Vis;
             B += Fc * G_Vis;

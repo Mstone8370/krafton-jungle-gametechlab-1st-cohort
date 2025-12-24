@@ -6,7 +6,7 @@
 #include "Engine/Texture.h"
 
 FSpecularPrefilterBakePass::FSpecularPrefilterBakePass()
-    : MaxReflectionLod(9)
+    : MaxReflectionLod(10)
     , TextureSize(0)
     , ConstantBuffer(nullptr)
     , PrefilterTexture(nullptr) 

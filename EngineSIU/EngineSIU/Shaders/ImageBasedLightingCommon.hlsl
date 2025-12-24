@@ -129,21 +129,31 @@ float3 SpecularIBL_Reference(float3 SpecularColor, float Roughness, float3 N, fl
         if (NoL > 0)
         {
             float3 SampleColor = EnvironmentMap.SampleLevel(SamplerLinearClamp, L, 0).rgb;
-            SampleColor = min(SampleColor, 5.0);
             
             float alpha = Roughness * Roughness;
+            float a2 = alpha * alpha;
             
             float NoV = saturate(dot(N, V));
             float VoH = saturate(dot(V, H));
             float NoH = saturate(dot(N, H));
             
-            float G = G_Smith(NoV, NoL, alpha);
+            /*
+            float G = G_Schlick(a2, NoV, NoL);
             float3 F = F_Schlick(SpecularColor, VoH);
             
             // Incident light = SampleColor * NoL
             // Microfacet specular = D*G*F / (4*NoL*NoV)
             // pdf = D * NoH / (4 * VoH)
             SpecularLighting += SampleColor * F * G * VoH * rcp(NoH * NoV + 0.0001);
+            */
+            
+            float Vis = Vis_SmithJoint(a2, NoV, NoL);
+            float3 F = F_Schlick(SpecularColor, VoH);
+            
+            // Incident light = SampleColor * NoL
+            // Microfacet specular = D*G*F / (4*NoL*NoV)
+            // pdf = D * NoH / (4 * VoH)
+            SpecularLighting += SampleColor * F * (Vis * 4 * NoL * VoH / NoH);
         }
     }
     
@@ -155,7 +165,7 @@ float3 SpecularIBL_SplitSumApprox(float3 SpecularColor, float Roughness, float3 
     float NoV = saturate(dot(N, V));
     float3 R = 2 * dot(V, N) * N - V;
     
-    float PrefilterLod = Roughness * (9 - 1);
+    float PrefilterLod = Roughness * (EnvPrefilterMaxLod - 1);
     
     float3 PrefilteredColor = EnvironmentPrefilter.SampleLevel(SamplerLinearClamp, R, PrefilterLod).rgb;
     float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;

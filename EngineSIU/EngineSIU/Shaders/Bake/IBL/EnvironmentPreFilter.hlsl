@@ -45,15 +45,17 @@ float3 PrefilterEnvMap(float Roughness, float3 R)
             float a = Roughness * Roughness;
             float a2 = a * a;
             
+            // Filtered Importance Sampling
             float Pdf = D_GGX(NoH, a2) * NoH / (4.0 * VoH + 0.0001);
             
-            float OmegaS = 1.0 / (NUM_SAMPLES * Pdf + 0.0001);
             float OmegaP = 4.0 * PI / (6.0 * SourceResolution * SourceResolution);
+            float OmegaS = 1.0 / (NUM_SAMPLES * Pdf + 0.0001);
             
-            float MipLevel = bFullReflection ? 0.0 : clamp(0.5 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
+            // 노이즈 때문에 bias를 0.5에서 0.55로 높임
+            float MipLevel = bFullReflection ? 0.0 : clamp(0.55 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
             
             float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, MipLevel).rgb * NoL;
-            SampledColor = min(SampledColor, 5.0); // HDR 값의 과도하게 높은 값 때문에 노이즈가 발생하여 적당히 제한.
+            SampledColor = min(SampledColor, 50.0);
             
             PrefilteredColor += SampledColor;
             TotalWeight += NoL;

@@ -70,9 +70,10 @@ float D_GGX(float NoH, float a2)
     return a2 / (PI * d * d);
 }
 
-float G_Smith(float NoV, float NoL, float alpha)
+// Smith 기법 적용된 Schlick 근사
+float G_Schlick(float a2, float NoV, float NoL)
 {
-    float k = alpha * 0.5;
+    float k = a2 * 0.5;
     float gV = NoV / (NoV * (1.0 - k) + k);
     float gL = NoL / (NoL * (1.0 - k) + k);
     return gV * gL;
@@ -93,7 +94,6 @@ float3 CookTorranceSpecular(float3 F0, float Roughness,
     float a2 = alpha * alpha;
 
     float D = D_GGX(NoH, a2);
-    float G = G_Smith(NoV, NoL, alpha);
     float3 F = F_Schlick(F0, VoH);
     
     float Vis = Vis_SmithJoint(a2, NoV, NoL);
