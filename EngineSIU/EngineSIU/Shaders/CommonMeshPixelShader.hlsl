@@ -179,8 +179,9 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     float3 V = normalize(ViewWorldLocation - Input.WorldPosition);
     float NoV = saturate(dot(N, V));
     
-    float3 F0 = lerp(0.04, DiffuseColor, Metallic);
+    float3 F0 = lerp(0.0, DiffuseColor, Metallic);
     
+    /*
     // Env Diffuse
     float3 F = F_SchlickRoughness(F0, NoV, Roughness);
     float3 Ks = F;
@@ -188,6 +189,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     float3 Kd = 1.0 - Ks;
     float KdScale = 1.0 - Metallic;
     Kd *= KdScale;
+    */
     
     float3 Irradiance = EnvironmentIrradiance.SampleLevel(SamplerLinearClamp, N, 0).rgb;
     float3 DiffuseIBL = Irradiance * DiffuseColor;
@@ -196,10 +198,21 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     //float3 SpecularIBL = SpecularIBL_Reference(F0, Roughness, N, V);
     float3 SpecularIBL = SpecularIBL_SplitSumApprox(F0, Roughness, N, V);
     
+    // Multi-scattering
+    float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;
+    float E_Single = EnvBRDF.x + EnvBRDF.y;
+    
+    float3 EnergyCompensation = 1.0 + F0 * (1.0 / E_Single - 1.0);
+    SpecularIBL *= EnergyCompensation;
+    
+    float3 Ks = (F0 * EnvBRDF.x + EnvBRDF.y) * EnergyCompensation; // 중복 계산으로, 현재 시점의 SpecularIBL의 값과 동일.
+    
+    float3 Kd = (1.0 - saturate(Ks)) * (1.0 - Metallic);
+    
     float AmbientOcclusion = 1.0f;
     float3 AmbientColor = (Kd * DiffuseIBL + SpecularIBL) * AmbientOcclusion;
     
-    FinalPixelColor.rgb += AmbientColor;
+    //FinalPixelColor.rgb += AmbientColor;
 #endif
 
     return FinalPixelColor;
