@@ -413,7 +413,7 @@ void FRenderer::RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewp
     }
     
     {
-        //SkyBoxRenderPass->Render(Viewport);
+        SkyBoxRenderPass->Render(Viewport);
     }
 }
 

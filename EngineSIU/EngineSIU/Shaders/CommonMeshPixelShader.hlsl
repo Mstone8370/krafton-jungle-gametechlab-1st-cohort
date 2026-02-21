@@ -212,7 +212,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     float AmbientOcclusion = 1.0f;
     float3 AmbientColor = (Kd * DiffuseIBL + SpecularIBL) * AmbientOcclusion;
     
-    //FinalPixelColor.rgb += AmbientColor;
+    FinalPixelColor.rgb += AmbientColor;
 #endif
 
     return FinalPixelColor;

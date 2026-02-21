@@ -50,6 +50,31 @@ float3 ApplyToneMapping(float3 hdrColor)
     return saturate((hdrColor * (A * hdrColor + B)) / (hdrColor * (C * hdrColor + D) + E));
 }
 
+// Khronos PBR Neutral Tone Mapper
+// https://github.com/KhronosGroup/ToneMapping/blob/main/PBR_Neutral/pbrNeutral.glsl
+float3 PBRNeutralToneMapping(float3 Color)
+{
+    const float StartCompression = 0.8f - 0.04f;
+    const float Desaturation = 0.15f;
+
+    float X = min(Color.r, min(Color.g, Color.b));
+    float Offset = X < 0.08f ? X - 6.25f * X * X : 0.04f;
+    Color -= Offset;
+
+    float Peak = max(Color.r, max(Color.g, Color.b));
+    if (Peak < StartCompression)
+    {
+        return Color;
+    }
+
+    const float D = 1.0f - StartCompression;
+    float NewPeak = 1.0f - D * D / (Peak + D - StartCompression);
+    Color *= NewPeak / Peak;
+
+    float G = 1.0f - 1.0f / (Desaturation * (Peak - NewPeak) + 1.0f);
+    return lerp(Color, float3(NewPeak, NewPeak, NewPeak), G);
+}
+
 float4 main(PS_Input Input) : SV_TARGET
 {
     float4 Scene = SceneTexture.Sample(CompositingSampler, Input.UV);
@@ -82,6 +107,7 @@ float4 main(PS_Input Input) : SV_TARGET
         
         // Tone mapping
         //FinalColor.rgb = ApplyToneMapping(FinalColor.rgb);
+        FinalColor.rgb = PBRNeutralToneMapping(FinalColor.rgb);
         
         // Gamma Correction
         FinalColor = pow(FinalColor, 1 / GammaValue);

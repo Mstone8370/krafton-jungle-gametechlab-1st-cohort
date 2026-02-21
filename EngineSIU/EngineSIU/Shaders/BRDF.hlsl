@@ -186,9 +186,9 @@ FBRDFResult CalculateBRDF(float3 L, float3 V, float3 N,
     float3 DiffuseColor = BaseColor * KdScale;
     
     //Result.DiffuseContribution = Diffuse_Lambert(DiffuseColor);
-    Result.DiffuseContribution = Diffuse_Burley(DiffuseColor, Roughness, NoV, NoL, VoH);
+    //Result.DiffuseContribution = Diffuse_Burley(DiffuseColor, Roughness, NoV, NoL, VoH);
     //Result.DiffuseContribution = Diffuse_Chan(DiffuseColor, Roughness, NoH, VoH);
-    //Result.DiffuseContribution = Diffuse_EON(DiffuseColor, Roughness, NoV, NoL, VoL);
+    Result.DiffuseContribution = Diffuse_EON(DiffuseColor, Roughness, NoV, NoL, VoL);
     
     Result.SpecularContribution = CookTorranceSpecular(F0, Roughness, NoL, NoV, NoH, VoH);
 #else
