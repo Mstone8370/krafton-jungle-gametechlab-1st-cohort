@@ -5,6 +5,27 @@
 #include "Shaders/ShaderRegisters.hlsl"
 #include "Shaders/BRDF.hlsl"
 
+float Luminance(float3 Color)
+{
+    return dot(Color, float3(0.2126, 0.7152, 0.0722));
+}
+
+float3 SoftClampColor(float3 Color, float Threshold, float Knee)
+{
+    float L = Luminance(Color);
+    if (L <= Threshold)
+    {
+        return Color;
+    }
+
+    float Over = L - Threshold;
+
+    // Threshold 이후부터 점진적으로 증가폭을 줄인다.
+    float CompressedL = Threshold + (Over * Knee) / (Over + Knee);
+
+    return Color * (CompressedL / max(L, 1e-4));
+}
+
 float3 GetDirection(uint3 DispatchThreadID, float CubeMapWidth, float CubeMapHeight)
 {
     const uint FaceIndex = DispatchThreadID.z;
@@ -117,7 +138,7 @@ float3 SpecularIBL_Reference(float3 SpecularColor, float Roughness, float3 N, fl
 {
     float3 SpecularLighting = 0;
     
-    const uint NumSamples = 128;
+    const uint NumSamples = 2048;
     for (uint i = 0; i < NumSamples; ++i)
     {
         //float2 Xi = Hammersley(i, NumSamples);
@@ -129,6 +150,7 @@ float3 SpecularIBL_Reference(float3 SpecularColor, float Roughness, float3 N, fl
         if (NoL > 0)
         {
             float3 SampleColor = EnvironmentMap.SampleLevel(SamplerLinearClamp, L, 0).rgb;
+            SampleColor = SoftClampColor(SampleColor, 10.0, 5.0);
             
             float alpha = Roughness * Roughness;
             float a2 = alpha * alpha;

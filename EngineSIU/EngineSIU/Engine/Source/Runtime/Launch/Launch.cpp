@@ -1,6 +1,15 @@
 #include "Core/HAL/PlatformType.h"
 #include "EngineLoop.h"
 
+extern "C"
+{
+    // NVIDIA 외장 그래픽 강제 사용 설정
+    __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+
+    // AMD 외장 그래픽 강제 사용 설정
+    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
 FEngineLoop GEngineLoop;
 
 void RedirectIOToConsole() {

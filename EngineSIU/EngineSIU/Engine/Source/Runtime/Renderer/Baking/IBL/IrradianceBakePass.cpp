@@ -148,7 +148,7 @@ void FIrradianceBakePass::PrepareRender(const std::shared_ptr<FEditorViewportCli
     }
     
     // Bind Constant Buffer
-    BufferManager->BindConstantBuffer("FPrefilterData", 0, EShaderStage::Compute);
+    BufferManager->BindConstantBuffer("FIrradianceData", 0, EShaderStage::Compute);
     
     // Update Constant Buffer
     BufferManager->UpdateConstantBuffer<FIrradianceData>("FIrradianceData", Data);

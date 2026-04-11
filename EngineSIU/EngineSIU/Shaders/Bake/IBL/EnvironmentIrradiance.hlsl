@@ -38,13 +38,37 @@ float4 IntegrateDiffuseCube(float3 N)
             float MipLevel = clamp(0.5 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
             
             float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, MipLevel).rgb;
-            SampledColor = min(SampledColor, 5.0);
+            SampledColor = SoftClampColor(SampledColor, 10.0, 5.0);
             
             AccumulatedBrdf += SampledColor;
         }
     }
     
     return float4(AccumulatedBrdf / NUM_SAMPLES, 1.0f);
+}
+
+float4 IntegrateLambertIrradiance(float3 N)
+{
+    float3 AccumulatedIrradiance = 0.0;
+
+    for (uint i = 0; i < NUM_SAMPLES; ++i)
+    {
+        float2 Xi = Hammersley(i, NUM_SAMPLES);
+        float3 L = ImportanceSampleCosine(Xi, N);
+
+        float NoL = saturate(dot(N, L));
+        if (NoL > 0)
+        {
+            // Lambert diffuse irradiance can be baked directly from the source cubemap.
+            // With cosine-weighted sampling, averaging Li is enough to estimate irradiance.
+            float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, 6).rgb;
+            SampledColor = SoftClampColor(SampledColor, 10.0, 5.0);
+            
+            AccumulatedIrradiance += SampledColor;
+        }
+    }
+
+    return float4(AccumulatedIrradiance / NUM_SAMPLES, 1.0f);
 }
 
 [numthreads(THREADS_X, THREADS_Y, 1)]
@@ -62,6 +86,7 @@ void main(uint3 DispatchThreadID : SV_DispatchThreadID)
     
     float3 N = GetDirection(DispatchThreadID, Width, Height);
     
+    //float4 IntegratedDiffuse = IntegrateLambertIrradiance(N);
     float4 IntegratedDiffuse = IntegrateDiffuseCube(N);
     
     OutputTexture[DispatchThreadID] = IntegratedDiffuse;

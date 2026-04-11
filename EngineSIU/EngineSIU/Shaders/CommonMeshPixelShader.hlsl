@@ -120,7 +120,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     {
         Roughness = MaterialTextures[TEXTURE_SLOT_ROUGHNESS].Sample(SamplerLinearWrap, Input.UV).g;
     }
-    Roughness = max(Roughness, 0.025);
+    float RoughnessClamped = max(Roughness, 0.025);
 #endif
     
     // Begin for Tile based light culled result
@@ -146,7 +146,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
             DiffuseColor,
     #ifdef LIGHTING_MODEL_PBR
             Metallic,
-            Roughness,
+            RoughnessClamped,
     #else
             SpecularColor,
             Shininess,
@@ -179,38 +179,31 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     float3 V = normalize(ViewWorldLocation - Input.WorldPosition);
     float NoV = saturate(dot(N, V));
     
-    float3 F0 = lerp(0.0, DiffuseColor, Metallic);
+    float3 F0 = lerp(0.04, DiffuseColor, Metallic);
     
-    /*
     // Env Diffuse
-    float3 F = F_SchlickRoughness(F0, NoV, Roughness);
-    float3 Ks = F;
-    
-    float3 Kd = 1.0 - Ks;
-    float KdScale = 1.0 - Metallic;
-    Kd *= KdScale;
-    */
-    
     float3 Irradiance = EnvironmentIrradiance.SampleLevel(SamplerLinearClamp, N, 0).rgb;
+    //Irradiance = float3(0,0,0);
     float3 DiffuseIBL = Irradiance * DiffuseColor;
     
     // Env Specular
-    //float3 SpecularIBL = SpecularIBL_Reference(F0, Roughness, N, V);
+    //float3 SpecularIBL = SpecularIBL_Reference(F0, RoughnessClamped, N, V);
     float3 SpecularIBL = SpecularIBL_SplitSumApprox(F0, Roughness, N, V);
+    //SpecularIBL = float3(0,0,0);
     
     // Multi-scattering
     float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;
     float E_Single = EnvBRDF.x + EnvBRDF.y;
+    float3 E_Spec = (F0 * EnvBRDF.x + EnvBRDF.y);
     
-    float3 EnergyCompensation = 1.0 + F0 * (1.0 / E_Single - 1.0);
+    float3 EnergyCompensation = 1.0 + F0 * (1.0 / E_Spec - 1.0);
     SpecularIBL *= EnergyCompensation;
     
-    float3 Ks = (F0 * EnvBRDF.x + EnvBRDF.y) * EnergyCompensation; // 중복 계산으로, 현재 시점의 SpecularIBL의 값과 동일.
-    
-    float3 Kd = (1.0 - saturate(Ks)) * (1.0 - Metallic);
+    float3 Kd = (1.0 - E_Spec) * (1.0 - Metallic);
     
     float AmbientOcclusion = 1.0f;
     float3 AmbientColor = (Kd * DiffuseIBL + SpecularIBL) * AmbientOcclusion;
+    //float3 AmbientColor = (DiffuseIBL + SpecularIBL_SplitSumApprox(F0, Roughness, N, V)) * AmbientOcclusion;
     
     FinalPixelColor.rgb += AmbientColor;
 #endif

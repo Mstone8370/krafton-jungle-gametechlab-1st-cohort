@@ -39,13 +39,13 @@ VS_OUTPUT mainVS(uint VertexID : SV_VertexID)
 {
     VS_OUTPUT Output = (VS_OUTPUT)0;
     
-    float3 LocalPosition = CubeVertices[CubeIndices[VertexID] - 1]; // .obj 파일의 인덱스는 1에서 시작하므로 1 감소시킴
+    float3 LocalPosition = CubeVertices[CubeIndices[VertexID] - 1]; // .obj 파일의 인덱스는 1에서 시작하므로 1 감소시킴.
     
     Output.Position = float4(LocalPosition, 0.0f);
     Output.Position = mul(Output.Position, ViewMatrix);
     Output.Position = mul(Output.Position, ProjectionMatrix);
     
-    Output.Position.z = Output.Position.w * 0.9999; // 핵심: Perspective Divide(Z/W) 후 깊이값이 항상 1.0이 되도록 함
+    Output.Position.z = Output.Position.w * 0.9999; // 핵심: Perspective Divide(Z/W) 후 깊이 값이 1.0에 가깝게 되도록 함.
     
     Output.UV = LocalPosition;
     
