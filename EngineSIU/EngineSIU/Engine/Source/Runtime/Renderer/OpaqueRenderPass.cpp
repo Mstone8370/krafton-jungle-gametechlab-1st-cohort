@@ -179,7 +179,7 @@ void FOpaqueRenderPass::PrepareRender(const std::shared_ptr<FEditorViewportClien
     Graphics->DeviceContext->OMSetRenderTargets(1, &RTV, DepthStencilRHI->DSV.Get());
 
     Graphics->DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_Default, 0);
+    Graphics->DeviceContext->OMSetDepthStencilState(Graphics->DepthStencilState_DepthWriteDisabled, 0);
     
     // Begin IBL
     if (std::shared_ptr<FTexture> EnvCubeMap = FEngineLoop::ResourceManager.GetTexture(L"EnvironmentCubeMap"))
