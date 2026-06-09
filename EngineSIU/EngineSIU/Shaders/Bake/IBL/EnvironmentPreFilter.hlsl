@@ -27,14 +27,14 @@ float3 PrefilterEnvMap(float Roughness, float3 R)
     float3 PrefilteredColor = 0.f;
     float TotalWeight = 0.f;
     
-    const bool bFullReflection = Roughness < 0.01;
+    const bool bFullReflection = Roughness <= 0.01;
     
     uint NumSamples = bFullReflection ? 1 : NUM_SAMPLES;
     for (uint i = 0; i < NumSamples; ++i)
     {
-        float2 Xi = Hammersley(i, NumSamples);
+        float2 Xi = Hammersley_Fast(i, NumSamples);
         float3 H = ImportanceSampleGGX(Xi, Roughness, N);
-        float3 L = 2 * dot(V, H) * H - V;
+        float3 L = reflect(-V, H);
         
         float NoL = saturate(dot(N, L));
         if (NoL > 0)
@@ -46,15 +46,14 @@ float3 PrefilterEnvMap(float Roughness, float3 R)
             float a2 = a * a;
             
             // Filtered Importance Sampling
-            float Pdf = D_GGX(NoH, a2) * NoH / (4.0 * VoH + 0.0001);
+            float Pdf = D_GGX(NoH, a2) * NoH / (4.0 * VoH + 1e-4);
             
             float OmegaP = 4.0 * PI / (6.0 * SourceResolution * SourceResolution);
-            float OmegaS = 1.0 / (NumSamples * Pdf + 0.0001);
+            float OmegaS = 1.0 / (NumSamples * Pdf + 1e-4);
             
             float MipLevel = bFullReflection ? 0.0 : clamp(0.5 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
             
             float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, MipLevel).rgb * NoL;
-            SampledColor = SoftClampColor(SampledColor, 10.0, 5.0);
             
             PrefilteredColor += SampledColor;
             TotalWeight += NoL;

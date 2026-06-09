@@ -10,8 +10,6 @@ RWTexture2D<float2> OutputTexture : register(u0);
 
 float2 IntegrateBRDF(float Roughness, float NoV)
 {
-    Roughness = max(Roughness, 0.025);
-    
     float3 V;
     V.x = sqrt(1.0f - NoV * NoV); // sin
     V.y = 0.0f;
@@ -24,7 +22,7 @@ float2 IntegrateBRDF(float Roughness, float NoV)
     
     for (uint i = 0; i < NUM_SAMPLES; ++i)
     {
-        float2 Xi = Hammersley(i, NUM_SAMPLES);
+        float2 Xi = Hammersley_Fast(i, NUM_SAMPLES);
         float3 H = ImportanceSampleGGX(Xi, Roughness, N);
         float3 L = 2 * dot(V, H) * H - V;
         
@@ -41,11 +39,11 @@ float2 IntegrateBRDF(float Roughness, float NoV)
             
             // 직접광에 사용하는 SmithJoint에 맞게 수정
             // G_Vis = G * VoH / (NoH * NoV)
-            float G_Vis = Vis * 4.0 * VoH * NoL / NoH;
+            float V_Vis = Vis * 4.0 * VoH * NoL / (NoH + 1e-4);
             
             float Fc = Pow5(1 - VoH);
-            A += (1 - Fc) * G_Vis;
-            B += Fc * G_Vis;
+            A += (1 - Fc) * V_Vis;
+            B += Fc * V_Vis;
         }
     }
     

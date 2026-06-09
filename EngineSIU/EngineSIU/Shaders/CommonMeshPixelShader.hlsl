@@ -42,16 +42,27 @@ cbuffer TileLightCullSettings : register(b8)
 
 #include "Light.hlsl"
 
+float3 EvalMultiScatterIBL(float3 F0, float3 albedo, float3 PrefilteredColor, float2 EnvBRDF, float3 Irradiance)
+{
+    float3 FssEss = F0 * EnvBRDF.x + EnvBRDF.y;
+    float  Ess    = EnvBRDF.x + EnvBRDF.y;
+    float  Ems    = 1.0 - Ess;
+    float3 Favg   = F0 + (1.0 - F0) * (1.0 / 21.0);
+    float3 FmsEms = Ems * FssEss * Favg / (1.0 - Favg * Ems);
+    float3 kD     = albedo * (1.0 - FssEss - FmsEms);
+    return PrefilteredColor * FssEss + (FmsEms + kD) * Irradiance;
+}
+
 float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 {
     float BaseAlpha = 1.0 - Material.Transparency;
     
     // Diffuse
-    float3 DiffuseColor = Material.DiffuseColor;
+    float3 BaseColor = Material.DiffuseColor;
     if (Material.TextureFlag & TEXTURE_FLAG_DIFFUSE)
     {
         float4 DiffuseColor4 = MaterialTextures[TEXTURE_SLOT_DIFFUSE].Sample(SamplerLinearWrap, Input.UV);
-        DiffuseColor = DiffuseColor4.rgb;
+        BaseColor = DiffuseColor4.rgb;
         BaseAlpha = DiffuseColor4.a;
     }
 
@@ -120,7 +131,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     {
         Roughness = MaterialTextures[TEXTURE_SLOT_ROUGHNESS].Sample(SamplerLinearWrap, Input.UV).g;
     }
-    float RoughnessClamped = max(Roughness, 0.025);
+    float RoughnessClamped = max(Roughness, 0.01);
 #endif
     
     // Begin for Tile based light culled result
@@ -143,7 +154,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
             Input.WorldPosition,
             WorldNormal,
             ViewWorldLocation,
-            DiffuseColor,
+            BaseColor,
     #ifdef LIGHTING_MODEL_PBR
             Metallic,
             RoughnessClamped,
@@ -164,7 +175,7 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     }
     else
     {
-        float3 UnlitRGB = DiffuseColor + EmissiveColor;
+        float3 UnlitRGB = BaseColor + EmissiveColor;
 
         FinalPixelColor = float4(UnlitRGB, BaseAlpha);
     }
@@ -179,32 +190,22 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     float3 V = normalize(ViewWorldLocation - Input.WorldPosition);
     float NoV = saturate(dot(N, V));
     
-    float3 F0 = lerp(0.04, DiffuseColor, Metallic);
+    float3 F0 = lerp(0.04, BaseColor, Metallic);
+    float3 DiffuseColor = BaseColor * (1.0 - Metallic);
     
     // Env Diffuse
     float3 Irradiance = EnvironmentIrradiance.SampleLevel(SamplerLinearClamp, N, 0).rgb;
-    //Irradiance = float3(0,0,0);
-    float3 DiffuseIBL = Irradiance * DiffuseColor;
     
     // Env Specular
-    //float3 SpecularIBL = SpecularIBL_Reference(F0, RoughnessClamped, N, V);
-    float3 SpecularIBL = SpecularIBL_SplitSumApprox(F0, Roughness, N, V);
-    //SpecularIBL = float3(0,0,0);
-    
-    // Multi-scattering
+    float3 PrefilteredColor = SpecularIBL_SplitSumApprox(Roughness, N, V);
     float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;
-    float E_Single = EnvBRDF.x + EnvBRDF.y;
-    float3 E_Spec = (F0 * EnvBRDF.x + EnvBRDF.y);
     
-    float3 EnergyCompensation = 1.0 + F0 * (1.0 / E_Spec - 1.0);
-    SpecularIBL *= EnergyCompensation;
-    
-    float3 Kd = (1.0 - E_Spec) * (1.0 - Metallic);
+    // Multi-scattering. Fdez-Aguera 2019
+    float3 Dielectric = EvalMultiScatterIBL(0.04, BaseColor, PrefilteredColor, EnvBRDF, Irradiance);
+    float3 Metal = EvalMultiScatterIBL(BaseColor, 0.0, PrefilteredColor, EnvBRDF, Irradiance);
     
     float AmbientOcclusion = 1.0f;
-    float3 AmbientColor = (Kd * DiffuseIBL + SpecularIBL) * AmbientOcclusion;
-    //float3 AmbientColor = (DiffuseIBL + SpecularIBL_SplitSumApprox(F0, Roughness, N, V)) * AmbientOcclusion;
-    
+    float3 AmbientColor = lerp(Dielectric, Metal, Metallic) * AmbientOcclusion;
     FinalPixelColor.rgb += AmbientColor;
 #endif
 

@@ -26,6 +26,19 @@ float3 SoftClampColor(float3 Color, float Threshold, float Knee)
     return Color * (CompressedL / max(L, 1e-4));
 }
 
+float3 SoftClampMaxChannel(float3 Color, float Threshold, float Knee)
+{
+    float MaxValue = max(max(Color.r, Color.g), Color.b);
+    if (MaxValue <= Threshold)
+    {
+        return Color;
+    }
+    
+    float Over = MaxValue - Threshold;
+    float Compressed = Threshold + (Over * Knee) / (Over + Knee);
+    return Color * (Compressed / max(MaxValue, 1e-4));
+}
+
 float3 GetDirection(uint3 DispatchThreadID, float CubeMapWidth, float CubeMapHeight)
 {
     const uint FaceIndex = DispatchThreadID.z;
@@ -99,7 +112,7 @@ float3 ImportanceSampleGGX(float2 Xi, float Roughness, float3 N)
     
     float Phi = 2 * PI * Xi.x;
     float CosTheta = sqrt((1 - Xi.y) / (1 + (a * a - 1) * Xi.y));
-    float SinTheta = sqrt(1 - CosTheta * CosTheta);
+    float SinTheta = sqrt(max(0, 1 - CosTheta * CosTheta));
     
     float3 H;
     H.x = SinTheta * cos(Phi);
@@ -138,19 +151,19 @@ float3 SpecularIBL_Reference(float3 SpecularColor, float Roughness, float3 N, fl
 {
     float3 SpecularLighting = 0;
     
-    const uint NumSamples = 2048;
+    const uint NumSamples = 1024;
     for (uint i = 0; i < NumSamples; ++i)
     {
         //float2 Xi = Hammersley(i, NumSamples);
         float2 Xi = Hammersley_Fast(i, NumSamples);
         float3 H = ImportanceSampleGGX(Xi, Roughness, N);
-        float3 L = 2 * dot(V, H) * H - V;
+        float3 L = reflect(-V, H);
         
         float NoL = saturate(dot(N, L));
         if (NoL > 0)
         {
             float3 SampleColor = EnvironmentMap.SampleLevel(SamplerLinearClamp, L, 0).rgb;
-            SampleColor = SoftClampColor(SampleColor, 10.0, 5.0);
+            SampleColor = SoftClampMaxChannel(SampleColor, 100.0, 10.0);
             
             float alpha = Roughness * Roughness;
             float a2 = alpha * alpha;
@@ -175,24 +188,18 @@ float3 SpecularIBL_Reference(float3 SpecularColor, float Roughness, float3 N, fl
             // Incident light = SampleColor * NoL
             // Microfacet specular = D*G*F / (4*NoL*NoV)
             // pdf = D * NoH / (4 * VoH)
-            SpecularLighting += SampleColor * F * (Vis * 4 * NoL * VoH / NoH);
+            SpecularLighting += SampleColor * F * (Vis * 4 * NoL * VoH / (NoH + 1e-4));
         }
     }
     
     return SpecularLighting / NumSamples;
 }
 
-float3 SpecularIBL_SplitSumApprox(float3 SpecularColor, float Roughness, float3 N, float3 V)
+float3 SpecularIBL_SplitSumApprox(float Roughness, float3 N, float3 V)
 {
-    float NoV = saturate(dot(N, V));
-    float3 R = 2 * dot(V, N) * N - V;
-    
+    float3 R = reflect(-V, N);
     float PrefilterLod = Roughness * (EnvPrefilterMaxLod - 1);
-    
-    float3 PrefilteredColor = EnvironmentPrefilter.SampleLevel(SamplerLinearClamp, R, PrefilterLod).rgb;
-    float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;
-    
-    return PrefilteredColor * (SpecularColor * EnvBRDF.x + EnvBRDF.y);
+    return EnvironmentPrefilter.SampleLevel(SamplerLinearClamp, R, PrefilterLod).rgb;
 }
 
 #endif
