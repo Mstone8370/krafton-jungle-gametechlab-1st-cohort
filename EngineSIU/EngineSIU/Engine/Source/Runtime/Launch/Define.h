@@ -551,3 +551,29 @@ struct FCPUSkinningConstants
     int32 bCPUSkinning = 0;
     FVector Padding = FVector::ZeroVector;
 };
+
+struct FSHBuffer
+{
+    FVector4 E0;
+    FVector4 E1;
+    FVector4 E2;
+    FVector4 E3;
+    FVector4 E4;
+    FVector4 E5;
+    FVector4 E6;
+    FVector4 E7;
+    FVector4 E8;
+    
+    void LoadValue(const TArray<FVector>& Values)
+    {
+        E0 = Values[0];
+        E1 = Values[1];
+        E2 = Values[2];
+        E3 = Values[3];
+        E4 = Values[4];
+        E5 = Values[5];
+        E6 = Values[6];
+        E7 = Values[7];
+        E8 = Values[8];
+    }
+};

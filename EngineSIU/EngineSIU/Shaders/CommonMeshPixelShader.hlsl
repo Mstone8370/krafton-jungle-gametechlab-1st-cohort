@@ -41,6 +41,7 @@ cbuffer TileLightCullSettings : register(b8)
 }
 
 #include "Light.hlsl"
+#include "SphericalHarmonics.hlsl"
 
 float3 EvalMultiScatterIBL(float3 F0, float3 albedo, float3 PrefilteredColor, float2 EnvBRDF, float3 Irradiance)
 {
@@ -194,7 +195,16 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
     float3 DiffuseColor = BaseColor * (1.0 - Metallic);
     
     // Env Diffuse
-    float3 Irradiance = EnvironmentIrradiance.SampleLevel(SamplerLinearClamp, N, 0).rgb;
+    bool bSH = true;
+    float3 Irradiance = float3(0, 0, 0);
+    if (bSH)
+    {
+        Irradiance = EvaluateSH(N);
+    }
+    else
+    {
+        Irradiance = EnvironmentIrradiance.SampleLevel(SamplerLinearClamp, N, 0).rgb;
+    }
     
     // Env Specular
     float3 PrefilteredColor = SpecularIBL_SplitSumApprox(Roughness, N, V);

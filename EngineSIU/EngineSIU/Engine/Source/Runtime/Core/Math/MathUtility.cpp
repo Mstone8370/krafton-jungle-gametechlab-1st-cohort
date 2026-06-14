@@ -225,3 +225,16 @@ FQuat FMath::QInterpTo(const FQuat& Current, const FQuat& Target, float DeltaTim
 
 	return FQuat::Slerp(Current, Target, FMath::Clamp<float>(InterpSpeed * DeltaTime, 0.f, 1.f));
 }
+
+FVector FMath::SoftClampMaxChannel(FVector Color, float Threshold, float Knee)
+{
+    const float MaxValue = FMath::Max(FMath::Max(Color.X, Color.Y), Color.Z);
+    if (MaxValue <= Threshold)
+    {
+        return Color;
+    }
+    
+    const float Over = MaxValue - Threshold;
+    const float Compressed = Threshold + (Over * Knee) / (Over + Knee);
+    return Color * (Compressed / FMath::Max(MaxValue, 1e-4f));
+}

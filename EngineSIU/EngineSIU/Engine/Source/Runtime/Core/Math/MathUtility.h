@@ -8,6 +8,7 @@
 #include "MathFwd.h"
 #include "MathSSE.h"
 #include "Core/HAL/PlatformType.h"
+#include "Container/Pair.h"
 
 
 #define PI                   (3.1415926535897932f)
@@ -632,4 +633,34 @@ struct FMath
     {
         return Value >= Min && Value <= Max;
     }
+    
+    static int32 Factorial(int32 X)
+    {
+        int32 Result = 1;
+        for (int32 i = 2; i <= X; ++i)
+        {
+            Result *= i;
+        }
+        return Result;
+    }
+
+    static TPair<double, double> Hammersley(int32 i, int32 N)
+    {
+        auto RadicalInverse_VdC = [](uint32 bits) -> double
+        {
+            bits = (bits << 16u) | (bits >> 16u);
+            bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+            bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+            bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+            bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+            return static_cast<double>(bits) * 2.3283064365386963e-10;
+        };
+        
+        return TPair<double, double>(
+            static_cast<double>(i) / static_cast<double>(N),
+            RadicalInverse_VdC(i)
+        );
+    }
+    
+    static FVector SoftClampMaxChannel(FVector Color, float Threshold, float Knee);
 };

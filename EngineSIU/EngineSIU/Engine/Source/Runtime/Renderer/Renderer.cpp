@@ -32,6 +32,7 @@
 #include "Baking/IBL/SpecularPrefilterBakePass.h"
 
 #include "UnrealClient.h"
+#include "Baking/SphericalHarmonics.h"
 #include "Baking/IBL/IntegrateBRDFBakePass.h"
 #include "GameFrameWork/Actor.h"
 
@@ -168,6 +169,8 @@ void FRenderer::CreateConstantBuffers()
     BufferManager->CreateStructuredBufferGeneric<FMeshParticleInstanceVertex>("ParticleMeshInstanceBuffer", nullptr, MaxParticleInstanceNum, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
     BufferManager->CreateBufferGeneric<FViewportSize>("FViewportSize", nullptr, sizeof(FViewportSize), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+    
+    BufferManager->CreateBufferGeneric<FSHBuffer>("FSHBuffer", nullptr, sizeof(FSHBuffer), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
     
     // TODO: 함수로 분리
     ID3D11Buffer* ObjectBuffer = BufferManager->GetConstantBuffer(TEXT("FObjectConstantBuffer"));
@@ -535,6 +538,14 @@ void FRenderer::BakeIBL()
 void FRenderer::BakeEnvironmentMap(const FWString& Texture2DName)
 {
     CubeMapBakePass->EnqueueCubeMapBake(Texture2DName);
+
+    TArray<FVector> SH;
+    if (FSphericalHarmonics::SphericalHarmonicsFromHDRI(Texture2DName, SH))
+    {
+        FSHBuffer SHValue;
+        SHValue.LoadValue(SH);
+        BufferManager->UpdateConstantBuffer(TEXT("FSHBuffer"), SHValue);
+    }
 }
 
 void FRenderer::BakeEnvironmentBRDF(const FWString& Path)

@@ -61,7 +61,7 @@ void FResourceManager::Initialize(FRenderer* Renderer, FGraphicsDevice* Device)
     
     std::wstring IBLPath = L"Assets/Texture/IBL/university_workshop_4k.hdr";
     IBLPath = L"Assets/Texture/IBL/photo_studio_loft_hall_4k.hdr";
-    //IBLPath = L"Assets/Texture/IBL/docklands_02_4k.hdr";
+    IBLPath = L"Assets/Texture/IBL/docklands_02_4k.hdr";
     LoadTextureFromHDR(Device->Device, IBLPath.c_str());
     FEngineLoop::Renderer.BakeEnvironmentMap(IBLPath);
     // End IBL
@@ -264,6 +264,25 @@ HRESULT FResourceManager::LoadTextureFromHDR(ID3D11Device* Device, const wchar_t
     if (FAILED(hr))
     {
         return hr;
+    }
+    
+    const DirectX::Image* Image = ScratchImage.GetImage(0, 0, 0);
+    const uint64 ImageWidth = MetaData.width;
+    const uint64 ImageHeight = MetaData.height;
+    
+    for (size_t Y = 0; Y < ImageHeight; ++Y)
+    {
+        float* Row = reinterpret_cast<float*>(Image->pixels + Y * Image->rowPitch);
+        for (size_t X = 0; X < ImageWidth; ++X)
+        {
+            float* PixPtr = Row + X * 4;
+            const FVector Color(PixPtr[0], PixPtr[1], PixPtr[2]);
+            const FVector ColorClamped = FMath::SoftClampMaxChannel(Color, 10.0, 5.f);
+            
+            PixPtr[0] = ColorClamped.X;
+            PixPtr[1] = ColorClamped.Y;
+            PixPtr[2] = ColorClamped.Z;
+        }
     }
     
     // to Resource

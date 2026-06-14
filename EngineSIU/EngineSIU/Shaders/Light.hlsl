@@ -136,7 +136,7 @@ cbuffer ShadowFlagConstants : register(b5)
     float3 shadowFlagPad0;
 }
 
-cbuffer CascadeConstantBuffer : register(b9)
+cbuffer CascadeConstantBuffer : register(b10)
 {
     row_major matrix World;
     row_major matrix CascadedViewProj[MAX_CASCADE_NUM];

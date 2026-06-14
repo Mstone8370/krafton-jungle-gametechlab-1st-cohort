@@ -58,6 +58,8 @@ public:
 
     // 이동 할당 연산자
     TArray& operator=(TArray&& Other) noexcept;
+    
+    TArray(SizeType Size, const T& Item);
 
     /** Element를 Number개 만큼 초기화 합니다. */
     void Init(const T& Element, SizeType Number);
@@ -301,6 +303,16 @@ TArray<T, AllocatorType>& TArray<T, AllocatorType>::operator=(TArray&& Other) no
         ContainerPrivate = std::move(Other.ContainerPrivate);
     }
     return *this;
+}
+
+template <typename T, typename AllocatorType>
+TArray<T, AllocatorType>::TArray(SizeType Size, const T& Item)
+{
+    Reserve(Size);
+    for (SizeType Index = 0; Index < Size; ++Index)
+    {
+        Emplace(Item);
+    }
 }
 
 template <typename T, typename AllocatorType>
