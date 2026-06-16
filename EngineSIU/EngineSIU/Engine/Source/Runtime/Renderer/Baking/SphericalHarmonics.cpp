@@ -60,66 +60,6 @@ double SH(int32 l, int32 m, double Theta, double Phi)
     return Sqrt2 * K(l, -m) * FMath::Sin(-m * Phi) * P(l, -m, FMath::Cos(Theta));
 }
 
-struct FSHSample
-{
-    double Theta;
-    double Phi;
-    FVector Direction;
-    TArray<double> Coefficient;
-};
-
-static double Random()
-{
-    static std::mt19937 rng(1234);
-    static std::uniform_real_distribution<double> d(0.0, 1.0);
-    return d(rng);
-}
-
-TArray<FSHSample> SetupSphericalSamples_Jittered(int32 SqrtN, int32 NumBands)
-{
-    TArray<FSHSample> Samples;
-    Samples.Empty();
-    Samples.Reserve(SqrtN * SqrtN);
-    
-    const int32 NumCoefficients = NumBands * NumBands;
-    const double Inv = 1.0 / SqrtN;
-    
-    for (int32 A = 0; A < SqrtN; ++A)
-    {
-        for (int32 B = 0; B < SqrtN; ++B)
-        {
-            const double X = (A + Random()) * Inv;
-            const double Y = (B + Random()) * Inv;
-            
-            const double Theta = 2.0 * FMath::Acos(FMath::Sqrt(1.0 - X));
-            const double Phi = 2.0 * PI * Y;
-            
-            FSHSample Sample;
-            Sample.Theta = Theta;
-            Sample.Phi = Phi;
-            Sample.Coefficient.SetNum(NumCoefficients);
-            Sample.Direction = FVector(
-                FMath::Sin(Theta) * FMath::Cos(Phi),
-                FMath::Sin(Theta) * FMath::Sin(Phi),
-                FMath::Cos(Theta)
-            );
-            
-            for (int32 l = 0; l < NumBands; ++l)
-            {
-                for (int32 m = -l; m <= l; ++m)
-                {
-                    const int32 Idx = l * (l + 1) + m;
-                    Sample.Coefficient[Idx] = SH(l, m, Theta, Phi);
-                }
-            }
-            
-            Samples.Emplace(Sample);
-        }
-    }
-    
-    return Samples;
-}
-
 FVector SampleColor(const DirectX::Image* Image, uint64 X, uint64 Y)
 {
     const uint8_t* RowPtr = Image->pixels + Y * Image->rowPitch;
@@ -152,6 +92,7 @@ bool FSphericalHarmonics::SphericalHarmonicsFromHDRI(const FWString& FilePath, T
             float* PixPtr = Row + X * 4;
             const FVector Color(PixPtr[0], PixPtr[1], PixPtr[2]);
             const FVector ColorClamped = FMath::SoftClampMaxChannel(Color, 10.0, 5.f);
+            // const FVector ColorClamped = FVector::OneVector;
             
             PixPtr[0] = ColorClamped.X;
             PixPtr[1] = ColorClamped.Y;
@@ -162,69 +103,42 @@ bool FSphericalHarmonics::SphericalHarmonicsFromHDRI(const FWString& FilePath, T
     constexpr int32 NumBands = 3;
     constexpr int32 NumCoefficients = NumBands * NumBands;
     
-    const TArray<FSHSample> Samples = SetupSphericalSamples_Jittered(100, NumBands);
-    
-    /*
-    // 결과 검증    
-    TArray<TArray<double>> Coefficients(NumCoefficients, TArray<double>(9, 0.0));
-    for (const FSHSample& Sample : Samples)
-    {
-        for (int32 i = 0; i < NumCoefficients; ++i)
-        {
-            for (int32 j = 0; j < NumCoefficients; ++j)
-            {
-                Coefficients[i][j] += Sample.Coefficient[i] * Sample.Coefficient[j];
-            }
-        }
-    }
-    
-    for (int32 i = 0; i < NumCoefficients; ++i)
-    {
-        for (int32 j = 0; j < NumCoefficients; ++j)
-        {
-            std::cout << Coefficients[i][j] * 4 * PI / static_cast<double>(Samples.Num()) << ", ";
-        }
-        std::cout << std::endl;
-    }
-    */
-    
     {
         OutResult.SetNum(NumCoefficients);
-    
-        for (const FSHSample& Sample : Samples)
-        {
-            const double U = Sample.Phi / (2.0 * PI);
-            const double V = Sample.Theta / PI;
         
-            const int32 SampleX = U * ImageWidth;
-            const int32 SampleY = V * ImageHeight;
-            
-            const FVector SampledColor = SampleColor(Image, SampleX, SampleY);
-            for (int32 i = 0; i < NumCoefficients; ++i)
-            {
-                OutResult[i] += SampledColor * Sample.Coefficient[i];
-            }
-        }
-    
-        for (FVector& Result : OutResult)
+        const double W = static_cast<double>(ImageWidth);
+        const double H = static_cast<double>(ImageHeight);
+        
+        for (uint64 Y = 0; Y < ImageHeight; ++Y)
         {
-            Result *= (4 * PI / static_cast<double>(Samples.Num()));
+            const double Theta = (static_cast<double>(Y) + 0.5) / H * PI;
+            const double D_Omega = FMath::Sin(Theta) * (PI / H) * (2.0 * PI / W);
+            for (uint64 X = 0; X < ImageWidth; ++X)
+            {
+                const double Phi = (static_cast<double>(X) + 0.5) / W * 2.0 * PI;
+                const FVector L = SampleColor(Image, X, Y);
+                
+                for (int32 l = 0; l < NumBands; ++l)
+                {
+                    for (int32 m = -l; m <= l; ++m)
+                    {
+                        const int32 Idx = l * (l + 1) + m;
+                        OutResult[Idx] += L * static_cast<float>(SH(l, m, Theta, Phi) * D_Omega);
+                    }
+                }
+            }
         }
     }
     
     {
-        int32 Band = 0;
-        TArray<double> AHat_Pi = {1, 2.0 / 3.0, 1.0/ 4.0}; // A-hat_l/PI
-        for (int32 i = 0; i < NumCoefficients; ++i)
+        TArray<double> AHat_Pi = { 1, 2.0 / 3.0, 1.0 / 4.0 }; // A-hat_l/PI
+        for (int32 l = 0; l < NumBands; ++l)
         {
-            const int32 NextBand = (Band + 1);
-            const bool bShouldIncreaseBand = (i >= (NextBand * NextBand));
-            if (bShouldIncreaseBand)
+            for (int32 m = -l; m <= l; ++m)
             {
-                ++Band;
+                const int32 Idx = l * (l + 1) + m;
+                OutResult[Idx] *= AHat_Pi[l];
             }
-            
-            OutResult[i] *= AHat_Pi[Band];
         }
     }
     
