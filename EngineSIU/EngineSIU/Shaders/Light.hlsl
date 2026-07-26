@@ -18,6 +18,7 @@
 
 #include "BRDF.hlsl"
 #include "ImageBasedLightingCommon.hlsl"
+#include "SphericalHarmonics.hlsl"
 
 // for SoptLight and PointLight
 struct FLightData
@@ -794,15 +795,47 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     }
 
     
-    // 앰비언트
+    // Environment
+    float3 EnvironmentColor = float3(0.0, 0.0, 0.0);
+    float3 N = WorldNormal;
+    float3 V = normalize(WorldViewPosition - WorldPosition);
+    float NoV = saturate(dot(N, V));
+    
 #ifdef LIGHTING_MODEL_PBR
-    float3 IBL_DiffuseColor = 0; // TODO: 임시 값으로, 추후 IBL 적용
-
-    if (AmbientLightCount > 0)
+    float3 F0 = lerp(0.04, BaseColor, Metallic);
+    float3 DiffuseColor = BaseColor * (1.0 - Metallic);
+    
+    // Env Diffuse
+    bool bSH = true;
+    float3 Irradiance = float3(0, 0, 0);
+    if (bSH)
     {
-        IBL_DiffuseColor = AmbientLightInfo.AmbientColor.rgb;
+        Irradiance = EvaluateSH(N);
     }
-    AccumulatedDiffuseColor += BaseColor * (1.0 - Metallic) * IBL_DiffuseColor;
+    else
+    {
+        Irradiance = EnvironmentIrradiance.SampleLevel(SamplerLinearClamp, N, 0).rgb;
+    }
+    
+    // Env Specular
+    float3 PrefilteredColor = SpecularIBL_SplitSumApprox(Roughness, N, V);
+    float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;
+    
+    float3 Fd = Irradiance * DiffuseColor;
+    float3 Fr = PrefilteredColor * (F0 * EnvBRDF.x + EnvBRDF.y);
+    
+    float Ess = EnvBRDF.x + EnvBRDF.y;
+    float EnergyCompensation = 1.0 + F0 * (1.0 / Ess - 1.0); 
+    Fr *= EnergyCompensation;
+    
+    EnvironmentColor = Fd + Fr;
+    
+    
+    // Multi-scattering. Fdez-Aguera 2019
+    float3 Dielectric = EvalMultiScatterIBL(0.04, BaseColor, PrefilteredColor, EnvBRDF, Irradiance);
+    float3 Metal = EvalMultiScatterIBL(BaseColor, 0.0, PrefilteredColor, EnvBRDF, Irradiance);
+    
+    EnvironmentColor = lerp(Dielectric, Metal, Metallic);
 #else
     float3 AmbientLightColor = float3(0.01, 0.01, 0.01);
     
@@ -813,11 +846,11 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     AccumulatedDiffuseColor += DiffuseColor * AmbientLightColor;
 #endif
 
-    float3 FinalRGB = AccumulatedDiffuseColor + AccumulatedSpecularColor;
+    float AmbientOcclusion = 1.0f;
+    float3 FinalRGB = AccumulatedDiffuseColor + AccumulatedSpecularColor + EnvironmentColor * AmbientOcclusion;
 
     
     // 알파
-    float3 V = normalize(WorldViewPosition - WorldPosition);
     float FinalAlpha = GetFinalAlpha(BaseAlpha, MaxObservedSpecularLuminance, V, WorldNormal,
 #ifdef LIGHTING_MODEL_PBR
         BaseColor, Metallic

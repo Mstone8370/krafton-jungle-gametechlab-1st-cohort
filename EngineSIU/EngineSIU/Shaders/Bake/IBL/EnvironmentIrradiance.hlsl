@@ -19,7 +19,7 @@ cbuffer FIrradianceData : register(b0)
 
 float4 IntegrateDiffuseCube(float3 N)
 {
-    float3 AccumulatedBrdf = 0.0;
+    float3 AccumulatedRadiance = 0.0;
     
     for (uint i = 0; i < NUM_SAMPLES; ++i)
     {
@@ -38,13 +38,12 @@ float4 IntegrateDiffuseCube(float3 N)
             float MipLevel = clamp(0.5 * log2(OmegaS / OmegaP), 0, SourceNumMipLevels);
             
             float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, MipLevel).rgb;
-            SampledColor = SoftClampColor(SampledColor, 10.0, 5.0);
             
-            AccumulatedBrdf += SampledColor;
+            AccumulatedRadiance += SampledColor;
         }
     }
     
-    return float4(AccumulatedBrdf / NUM_SAMPLES, 1.0f);
+    return float4(AccumulatedRadiance / NUM_SAMPLES, 1.0f);
 }
 
 float4 IntegrateLambertIrradiance(float3 N)
@@ -62,7 +61,6 @@ float4 IntegrateLambertIrradiance(float3 N)
             // Lambert diffuse irradiance can be baked directly from the source cubemap.
             // With cosine-weighted sampling, averaging Li is enough to estimate irradiance.
             float3 SampledColor = SourceTexture.SampleLevel(SamplerLinearClamp, L, 6).rgb;
-            SampledColor = SoftClampColor(SampledColor, 10.0, 5.0);
             
             AccumulatedIrradiance += SampledColor;
         }

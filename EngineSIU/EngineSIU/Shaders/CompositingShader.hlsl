@@ -107,7 +107,7 @@ float4 main(PS_Input Input) : SV_TARGET
         
         // Tone mapping
         //FinalColor.rgb = ApplyToneMapping(FinalColor.rgb);
-        FinalColor.rgb = PBRNeutralToneMapping(FinalColor.rgb);
+        //FinalColor.rgb = PBRNeutralToneMapping(FinalColor.rgb);
         
         // Gamma Correction
         FinalColor = pow(FinalColor, 1 / GammaValue);

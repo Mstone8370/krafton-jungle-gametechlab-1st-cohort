@@ -41,18 +41,6 @@ cbuffer TileLightCullSettings : register(b8)
 }
 
 #include "Light.hlsl"
-#include "SphericalHarmonics.hlsl"
-
-float3 EvalMultiScatterIBL(float3 F0, float3 albedo, float3 PrefilteredColor, float2 EnvBRDF, float3 Irradiance)
-{
-    float3 FssEss = F0 * EnvBRDF.x + EnvBRDF.y;
-    float  Ess    = EnvBRDF.x + EnvBRDF.y;
-    float  Ems    = 1.0 - Ess;
-    float3 Favg   = F0 + (1.0 - F0) * (1.0 / 21.0);
-    float3 FmsEms = Ems * FssEss * Favg / (1.0 - Favg * Ems);
-    float3 kD     = albedo * (1.0 - FssEss - FmsEms);
-    return PrefilteredColor * FssEss + (FmsEms + kD) * Irradiance;
-}
 
 float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
 {
@@ -186,38 +174,5 @@ float4 mainPS(PS_INPUT_CommonMesh Input) : SV_Target
         FinalPixelColor.rgb += float3(0.01, 0.01, 0.0);
     }
     
-#ifdef LIGHTING_MODEL_PBR
-    float3 N = WorldNormal;
-    float3 V = normalize(ViewWorldLocation - Input.WorldPosition);
-    float NoV = saturate(dot(N, V));
-    
-    float3 F0 = lerp(0.04, BaseColor, Metallic);
-    float3 DiffuseColor = BaseColor * (1.0 - Metallic);
-    
-    // Env Diffuse
-    bool bSH = true;
-    float3 Irradiance = float3(0, 0, 0);
-    if (bSH)
-    {
-        Irradiance = EvaluateSH(N);
-    }
-    else
-    {
-        Irradiance = EnvironmentIrradiance.SampleLevel(SamplerLinearClamp, N, 0).rgb;
-    }
-    
-    // Env Specular
-    float3 PrefilteredColor = SpecularIBL_SplitSumApprox(Roughness, N, V);
-    float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;
-    
-    // Multi-scattering. Fdez-Aguera 2019
-    float3 Dielectric = EvalMultiScatterIBL(0.04, BaseColor, PrefilteredColor, EnvBRDF, Irradiance);
-    float3 Metal = EvalMultiScatterIBL(BaseColor, 0.0, PrefilteredColor, EnvBRDF, Irradiance);
-    
-    float AmbientOcclusion = 1.0f;
-    float3 AmbientColor = lerp(Dielectric, Metal, Metallic) * AmbientOcclusion;
-    FinalPixelColor.rgb += AmbientColor;
-#endif
-
     return FinalPixelColor;
 }

@@ -196,4 +196,16 @@ FBRDFResult CalculateBRDF(float3 L, float3 V, float3 N,
     return Result;
 }
 
+float3 EvalMultiScatterIBL(float3 F0, float3 Albedo, float3 PrefilteredColor, float2 EnvBRDF, float3 Irradiance)
+{
+    float3 FssEss = F0 * EnvBRDF.x + EnvBRDF.y;
+    float  Ess    = EnvBRDF.x + EnvBRDF.y;
+    float  Ems    = 1.0 - Ess;
+    float3 Favg   = F0 + (1.0 - F0) * (1.0 / 21.0);
+    float3 FmsEms = Ems * FssEss * Favg / (1.0 - Favg * Ems);
+    float3 kD     = Albedo * (1.0 - FssEss - FmsEms);
+    
+    return (FmsEms + kD) * Irradiance + FssEss * PrefilteredColor;
+}
+
 #endif
