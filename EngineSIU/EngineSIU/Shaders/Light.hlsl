@@ -821,16 +821,6 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     float3 PrefilteredColor = SpecularIBL_SplitSumApprox(Roughness, N, V);
     float2 EnvBRDF = EnvironmentBRDF.SampleLevel(SamplerLinearClamp, float2(NoV, Roughness), 0).rg;
     
-    float3 Fd = Irradiance * DiffuseColor;
-    float3 Fr = PrefilteredColor * (F0 * EnvBRDF.x + EnvBRDF.y);
-    
-    float Ess = EnvBRDF.x + EnvBRDF.y;
-    float EnergyCompensation = 1.0 + F0 * (1.0 / Ess - 1.0); 
-    Fr *= EnergyCompensation;
-    
-    EnvironmentColor = Fd + Fr;
-    
-    
     // Multi-scattering. Fdez-Aguera 2019
     float3 Dielectric = EvalMultiScatterIBL(0.04, BaseColor, PrefilteredColor, EnvBRDF, Irradiance);
     float3 Metal = EvalMultiScatterIBL(BaseColor, 0.0, PrefilteredColor, EnvBRDF, Irradiance);
@@ -844,6 +834,14 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
         AmbientLightColor = AmbientLightInfo.AmbientColor.rgb;
     }
     AccumulatedDiffuseColor += DiffuseColor * AmbientLightColor;
+#endif
+    
+    // Multi-scattering (direct light)
+#ifdef LIGHTING_MODEL_PBR
+    // Google Filament - only for metal
+    float Ess = EnvBRDF.x + EnvBRDF.y;
+    float EnergyCompensation = 1.0 + F0 * (1.0 / Ess - 1.0); 
+    AccumulatedSpecularColor *= EnergyCompensation;
 #endif
 
     float AmbientOcclusion = 1.0f;
