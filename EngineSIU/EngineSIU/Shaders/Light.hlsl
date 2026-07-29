@@ -838,10 +838,13 @@ float4 Lighting(float3 WorldPosition, float3 WorldNormal, float3 WorldViewPositi
     
     // Multi-scattering (direct light)
 #ifdef LIGHTING_MODEL_PBR
-    // Google Filament - only for metal
+    // Google Filament
     float Ess = EnvBRDF.x + EnvBRDF.y;
     float EnergyCompensation = 1.0 + F0 * (1.0 / Ess - 1.0); 
     AccumulatedSpecularColor *= EnergyCompensation;
+    
+    float3 FssEss = F0 * EnvBRDF.x + EnvBRDF.y;
+    AccumulatedDiffuseColor *= (1.0 - FssEss * EnergyCompensation);
 #endif
 
     float AmbientOcclusion = 1.0f;
