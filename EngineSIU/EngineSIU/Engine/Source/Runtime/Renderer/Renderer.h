@@ -78,6 +78,7 @@ protected:
     void UpdateCommonBuffer(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void PrepareRender(FViewportResource* ViewportResource) const;
     void PrepareRenderPass() const;
+    void ResolveSceneDepth(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
 
     void RenderPreScene(const std::shared_ptr<FEditorViewportClient>& Viewport) const;
     void RenderOpaque(const std::shared_ptr<FEditorViewportClient>& Viewport) const;

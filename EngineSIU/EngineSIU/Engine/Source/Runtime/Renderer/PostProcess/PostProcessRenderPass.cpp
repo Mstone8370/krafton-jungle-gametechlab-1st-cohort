@@ -1,6 +1,7 @@
 #include "PostProcessRenderPass.h"
 
 #include "CameraEffectRenderPass.h"
+#include "UnrealClient.h"
 #include "EngineBaseTypes.h"
 #include "FogRenderPass.h"
 #include "PostProcessCompositingPass.h"
@@ -9,6 +10,7 @@
 #include "PropertyEditor/ShowFlags.h"
 #include "DepthOfFieldRenderPass.h"
 #include "Stats/Stats.h"
+#include "D3D11RHI/GraphicDevice.h"
 
 FPostProcessRenderPass::FPostProcessRenderPass()
 {
@@ -31,6 +33,8 @@ void FPostProcessRenderPass::Render(const std::shared_ptr<FEditorViewportClient>
         QUICK_GPU_SCOPE_CYCLE_COUNTER(FogPass_GPU, *GPUTimingManager)
         FogRenderPass->Render(Viewport);
     }
+
+    Viewport->GetViewportResource()->ResolveRenderTarget(Graphics->DeviceContext, EResourceType::ERT_Scene);
 
     if (ShowFlag & EEngineShowFlags::SF_DOF)
     {

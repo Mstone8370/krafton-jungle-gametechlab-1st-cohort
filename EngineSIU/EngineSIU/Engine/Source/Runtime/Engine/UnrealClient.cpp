@@ -7,6 +7,7 @@ FViewportResource::FViewportResource()
 {
     ClearColors.Add(EResourceType::ERT_Compositing, { 0.f, 0.f, 0.f, 1.f });
     ClearColors.Add(EResourceType::ERT_Scene,  { 0.025f, 0.025f, 0.025f, 1.0f });
+    ClearColors.Add(EResourceType::ERT_Translucent, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_PP_Fog, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_PP_CameraEffect, { 0.f, 0.f, 0.f, 0.f });
     ClearColors.Add(EResourceType::ERT_Debug, { 0.f, 0.f, 0.f, 0.f });
@@ -29,6 +30,8 @@ FViewportResource::~FViewportResource()
 
 void FViewportResource::Initialize(uint32 InWidth, uint32 InHeight)
 {
+    InitializeMSAASettings();
+
     D3DViewport.TopLeftX = 0.f;
     D3DViewport.TopLeftY = 0.f;
     D3DViewport.Height = static_cast<float>(InHeight);
@@ -61,16 +64,83 @@ void FViewportResource::Initialize(uint32 InWidth, uint32 InHeight)
     {
         return;
     }
+
+    hr = CreateRenderTarget(EResourceType::ERT_Translucent);
+    if (FAILED(hr))
+    {
+        return;
+    }
+
+    hr = CreateRenderTarget(EResourceType::ERT_Editor);
+    if (FAILED(hr))
+    {
+        return;
+    }
+
+    hr = CreateRenderTarget(EResourceType::ERT_EditorOverlay);
+    if (FAILED(hr))
+    {
+        return;
+    }
+}
+
+void FViewportResource::InitializeMSAASettings()
+{
+    MSAASampleCount = 1;
+    MSAASampleQuality = 0;
+
+    ID3D11Device* Device = FEngineLoop::GraphicDevice.Device;
+    if (!Device)
+    {
+        return;
+    }
+
+    UINT ColorQualityLevels = 0;
+    UINT DepthQualityLevels = 0;
+    const HRESULT ColorResult = Device->CheckMultisampleQualityLevels(
+        DXGI_FORMAT_R16G16B16A16_FLOAT,
+        RequestedMSAASampleCount,
+        &ColorQualityLevels
+    );
+    const HRESULT DepthResult = Device->CheckMultisampleQualityLevels(
+        DXGI_FORMAT_D24_UNORM_S8_UINT,
+        RequestedMSAASampleCount,
+        &DepthQualityLevels
+    );
+
+    if (SUCCEEDED(ColorResult) && SUCCEEDED(DepthResult) && ColorQualityLevels > 0 && DepthQualityLevels > 0)
+    {
+        MSAASampleCount = RequestedMSAASampleCount;
+    }
+}
+
+bool FViewportResource::ShouldUseMSAARenderTarget(EResourceType Type, EDownSampleScale DownSampleScale) const
+{
+    if (!IsMSAAEnabled() || DownSampleScale != EDownSampleScale::DSS_None)
+    {
+        return false;
+    }
+
+    return Type == EResourceType::ERT_Scene
+        || Type == EResourceType::ERT_Translucent
+        || Type == EResourceType::ERT_Editor
+        || Type == EResourceType::ERT_EditorOverlay;
+}
+
+bool FViewportResource::ShouldUseMSAADepthStencil(EResourceType Type, EDownSampleScale DownSampleScale) const
+{
+    if (!IsMSAAEnabled() || DownSampleScale != EDownSampleScale::DSS_None)
+    {
+        return false;
+    }
+
+    return Type == EResourceType::ERT_Scene || Type == EResourceType::ERT_Gizmo;
 }
 
 void FViewportResource::Resize(uint32 NewWidth, uint32 NewHeight)
 {
     ReleaseAllResources();
-
-    D3DViewport.Height = static_cast<float>(NewHeight);
-    D3DViewport.Width = static_cast<float>(NewWidth);
-
-    // 이후 GetRenderTarget 또는 GetDepthStencil 호출 시 리소스 자동으로 생성
+    Initialize(NewWidth, NewHeight);
 }
 
 void FViewportResource::Release()
@@ -94,14 +164,16 @@ HRESULT FViewportResource::CreateDepthStencil(EResourceType Type, EDownSampleSca
     
     HRESULT hr = S_OK;
     
+    const bool bUseMSAA = ShouldUseMSAADepthStencil(Type, DownSampleScale);
+
     D3D11_TEXTURE2D_DESC DepthStencilTextureDesc = {};
     DepthStencilTextureDesc.Width = static_cast<uint32>(D3DViewport.Width / static_cast<float>(DownSampleScale));
     DepthStencilTextureDesc.Height = static_cast<uint32>(D3DViewport.Height / static_cast<float>(DownSampleScale));
     DepthStencilTextureDesc.MipLevels = 1;
     DepthStencilTextureDesc.ArraySize = 1;
     DepthStencilTextureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-    DepthStencilTextureDesc.SampleDesc.Count = 1;
-    DepthStencilTextureDesc.SampleDesc.Quality = 0;
+    DepthStencilTextureDesc.SampleDesc.Count = bUseMSAA ? MSAASampleCount : 1;
+    DepthStencilTextureDesc.SampleDesc.Quality = bUseMSAA ? MSAASampleQuality : 0;
     DepthStencilTextureDesc.Usage = D3D11_USAGE_DEFAULT;
     DepthStencilTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
     DepthStencilTextureDesc.CPUAccessFlags = 0;
@@ -115,23 +187,93 @@ HRESULT FViewportResource::CreateDepthStencil(EResourceType Type, EDownSampleSca
     
     D3D11_DEPTH_STENCIL_VIEW_DESC DepthStencilViewDesc = {};
     DepthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    DepthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    DepthStencilViewDesc.Texture2D.MipSlice = 0;
+    DepthStencilViewDesc.ViewDimension = bUseMSAA ? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D;
+    if (!bUseMSAA)
+    {
+        DepthStencilViewDesc.Texture2D.MipSlice = 0;
+    }
     hr = FEngineLoop::GraphicDevice.Device->CreateDepthStencilView(NewResource.Texture2D.Get(),  &DepthStencilViewDesc,  &NewResource.DSV);
     if (FAILED(hr))
     {
         return hr;
     }
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC DepthStencilDesc = {};
-    DepthStencilDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-    DepthStencilDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    DepthStencilDesc.Texture2D.MostDetailedMip = 0;
-    DepthStencilDesc.Texture2D.MipLevels = 1;
-    hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D.Get(), &DepthStencilDesc, &NewResource.SRV);
-    if (FAILED(hr))
+    if (bUseMSAA)
     {
-        return hr;
+        D3D11_SHADER_RESOURCE_VIEW_DESC MSAASRVDesc = {};
+        MSAASRVDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+        MSAASRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(
+            NewResource.Texture2D.Get(),
+            &MSAASRVDesc,
+            &NewResource.MSAASRV
+        );
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+
+        D3D11_TEXTURE2D_DESC ResolvedTextureDesc = {};
+        ResolvedTextureDesc.Width = DepthStencilTextureDesc.Width;
+        ResolvedTextureDesc.Height = DepthStencilTextureDesc.Height;
+        ResolvedTextureDesc.MipLevels = 1;
+        ResolvedTextureDesc.ArraySize = 1;
+        ResolvedTextureDesc.Format = DXGI_FORMAT_R32_FLOAT;
+        ResolvedTextureDesc.SampleDesc.Count = 1;
+        ResolvedTextureDesc.SampleDesc.Quality = 0;
+        ResolvedTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+        ResolvedTextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+        hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(
+            &ResolvedTextureDesc,
+            nullptr,
+            NewResource.ResolvedTexture2D.GetAddressOf()
+        );
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+
+        D3D11_RENDER_TARGET_VIEW_DESC ResolvedRTVDesc = {};
+        ResolvedRTVDesc.Format = ResolvedTextureDesc.Format;
+        ResolvedRTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        hr = FEngineLoop::GraphicDevice.Device->CreateRenderTargetView(
+            NewResource.ResolvedTexture2D.Get(),
+            &ResolvedRTVDesc,
+            &NewResource.ResolvedRTV
+        );
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC ResolvedSRVDesc = {};
+        ResolvedSRVDesc.Format = ResolvedTextureDesc.Format;
+        ResolvedSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        ResolvedSRVDesc.Texture2D.MostDetailedMip = 0;
+        ResolvedSRVDesc.Texture2D.MipLevels = 1;
+        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(
+            NewResource.ResolvedTexture2D.Get(),
+            &ResolvedSRVDesc,
+            &NewResource.SRV
+        );
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+    }
+    else
+    {
+        D3D11_SHADER_RESOURCE_VIEW_DESC DepthStencilDesc = {};
+        DepthStencilDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+        DepthStencilDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        DepthStencilDesc.Texture2D.MostDetailedMip = 0;
+        DepthStencilDesc.Texture2D.MipLevels = 1;
+        hr = FEngineLoop::GraphicDevice.Device->CreateShaderResourceView(NewResource.Texture2D.Get(), &DepthStencilDesc, &NewResource.SRV);
+        if (FAILED(hr))
+        {
+            return hr;
+        }
     }
 
     DepthStencils[Type][DownSampleScale] = NewResource;
@@ -189,6 +331,8 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
     
     HRESULT hr = S_OK;
     
+    const bool bUseMSAA = ShouldUseMSAARenderTarget(Type, DownSampleScale);
+
     D3D11_TEXTURE2D_DESC TextureDesc = {};
     TextureDesc.Width = static_cast<uint32>(D3DViewport.Width / static_cast<float>(DownSampleScale));
     TextureDesc.Height = static_cast<uint32>(D3DViewport.Height / static_cast<float>(DownSampleScale));
@@ -198,20 +342,46 @@ HRESULT FViewportResource::CreateRenderTarget(EResourceType Type, EDownSampleSca
     TextureDesc.SampleDesc.Count = 1;
     TextureDesc.SampleDesc.Quality = 0;
     TextureDesc.Usage = D3D11_USAGE_DEFAULT;
-    TextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    TextureDesc.BindFlags = bUseMSAA
+        ? D3D11_BIND_SHADER_RESOURCE
+        : D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
     TextureDesc.CPUAccessFlags = 0;
     TextureDesc.MiscFlags = 0;
-    
+
     hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(&TextureDesc, nullptr, NewResource.Texture2D.GetAddressOf());
     if (FAILED(hr))
     {
         return hr;
     }
-    
+
+    ID3D11Texture2D* RenderTexture = NewResource.Texture2D.Get();
+    if (bUseMSAA)
+    {
+        D3D11_TEXTURE2D_DESC MSAATextureDesc = TextureDesc;
+        MSAATextureDesc.SampleDesc.Count = MSAASampleCount;
+        MSAATextureDesc.SampleDesc.Quality = MSAASampleQuality;
+        MSAATextureDesc.BindFlags = D3D11_BIND_RENDER_TARGET;
+
+        hr = FEngineLoop::GraphicDevice.Device->CreateTexture2D(
+            &MSAATextureDesc,
+            nullptr,
+            NewResource.MSAATexture2D.GetAddressOf()
+        );
+        if (FAILED(hr))
+        {
+            return hr;
+        }
+        RenderTexture = NewResource.MSAATexture2D.Get();
+    }
+
     D3D11_RENDER_TARGET_VIEW_DESC RTVDesc = {};
     RTVDesc.Format = TextureDesc.Format;
-    RTVDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-    hr = FEngineLoop::GraphicDevice.Device->CreateRenderTargetView(NewResource.Texture2D.Get(), &RTVDesc, &NewResource.RTV);
+    RTVDesc.ViewDimension = bUseMSAA ? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D;
+    if (!bUseMSAA)
+    {
+        RTVDesc.Texture2D.MipSlice = 0;
+    }
+    hr = FEngineLoop::GraphicDevice.Device->CreateRenderTargetView(RenderTexture, &RTVDesc, &NewResource.RTV);
     if (FAILED(hr))
     {
         return hr;
@@ -270,6 +440,34 @@ void FViewportResource::ClearRenderTarget(ID3D11DeviceContext* DeviceContext, ER
             DeviceContext->ClearRenderTargetView(Resource->RTV.Get(), ClearColors[Type].data());
         }
     }
+}
+
+void FViewportResource::ResolveRenderTarget(
+    ID3D11DeviceContext* DeviceContext,
+    EResourceType Type,
+    EDownSampleScale DownSampleScale
+)
+{
+    if (!DeviceContext || !HasRenderTarget(Type, DownSampleScale))
+    {
+        return;
+    }
+
+    const FRenderTargetResource* Resource = GetRenderTarget(Type, DownSampleScale);
+    if (!Resource || !Resource->Texture2D || !Resource->MSAATexture2D)
+    {
+        return;
+    }
+
+    D3D11_TEXTURE2D_DESC TextureDesc = {};
+    Resource->Texture2D->GetDesc(&TextureDesc);
+    DeviceContext->ResolveSubresource(
+        Resource->Texture2D.Get(),
+        0,
+        Resource->MSAATexture2D.Get(),
+        0,
+        TextureDesc.Format
+    );
 }
 
 std::array<float, 4> FViewportResource::GetClearColor(EResourceType Type) const

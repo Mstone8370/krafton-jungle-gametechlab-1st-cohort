@@ -40,6 +40,7 @@
 #include "Renderer/CameraRenderPass.h"
 #include "Stats/Stats.h"
 #include "Stats/GPUTimingManager.h"
+#include "RendererHelpers.h"
 
 //------------------------------------------------------------------------------
 // 초기화 및 해제 관련 함수
@@ -243,6 +244,12 @@ void FRenderer::CreateCommonShader() const
     {
         return;
     }
+
+    hr = ShaderManager->AddPixelShader(L"MSAAResolveDepth", L"Shaders/MSAAResolveDepthShader.hlsl", "main");
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"Failed to compile the MSAA depth resolve shader.", L"Error", MB_ICONERROR | MB_OK);
+    }
 }
 
 void FRenderer::PrepareRender(FViewportResource* ViewportResource) const
@@ -306,6 +313,52 @@ void FRenderer::BeginRender(const std::shared_ptr<FEditorViewportClient>& Viewpo
     PrepareRender(ViewportResource);
 }
 
+void FRenderer::ResolveSceneDepth(const std::shared_ptr<FEditorViewportClient>& Viewport) const
+{
+    FViewportResource* ViewportResource = Viewport->GetViewportResource();
+    if (!ViewportResource || !ViewportResource->IsMSAAEnabled())
+    {
+        return;
+    }
+
+    const FDepthStencilResource* SceneDepth = ViewportResource->GetDepthStencil(EResourceType::ERT_Scene);
+    if (!SceneDepth || !SceneDepth->MSAASRV || !SceneDepth->ResolvedRTV)
+    {
+        return;
+    }
+
+    ID3D11DeviceContext* DeviceContext = Graphics->DeviceContext;
+    ID3D11ShaderResourceView* NullSRV[1] = { nullptr };
+    DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, NullSRV);
+    DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+
+    ID3D11RenderTargetView* ResolvedRTV = SceneDepth->ResolvedRTV.Get();
+    DeviceContext->OMSetRenderTargets(1, &ResolvedRTV, nullptr);
+
+    ID3D11ShaderResourceView* MultisampledDepthSRV = SceneDepth->MSAASRV.Get();
+    DeviceContext->PSSetShaderResources(
+        static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth),
+        1,
+        &MultisampledDepthSRV
+    );
+
+    DeviceContext->RSSetViewports(1, &ViewportResource->GetD3DViewport());
+    DeviceContext->RSSetState(Graphics->RasterizerSolidBack);
+    DeviceContext->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    DeviceContext->IASetInputLayout(nullptr);
+    DeviceContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
+
+    ID3D11VertexShader* VertexShader = ShaderManager->GetVertexShaderByKey(L"FullScreenQuadVertexShader");
+    ID3D11PixelShader* PixelShader = ShaderManager->GetPixelShaderByKey(L"MSAAResolveDepth");
+    DeviceContext->VSSetShader(VertexShader, nullptr, 0);
+    DeviceContext->PSSetShader(PixelShader, nullptr, 0);
+    DeviceContext->Draw(6, 0);
+
+    DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+    DeviceContext->PSSetShaderResources(static_cast<UINT>(EShaderSRVSlot::SRV_SceneDepth), 1, NullSRV);
+}
+
 void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
 {
     if (!GPUTimingManager || !GPUTimingManager->IsInitialized())
@@ -336,6 +389,7 @@ void FRenderer::Render(const std::shared_ptr<FEditorViewportClient>& Viewport)
     RenderOpaque(Viewport);
     RenderEditorDepthElement(Viewport);
     RenderTranslucent(Viewport);
+    ResolveSceneDepth(Viewport);
     RenderEditorOverlay(Viewport);
     RenderPostProcess(Viewport);
 
@@ -501,6 +555,15 @@ void FRenderer::RenderPostProcess(const std::shared_ptr<FEditorViewportClient>& 
 
 void FRenderer::RenderFinalResult(const std::shared_ptr<FEditorViewportClient>& Viewport) const
 {
+    FViewportResource* ViewportResource = Viewport->GetViewportResource();
+    if (Viewport->GetViewMode() >= EViewModeIndex::VMI_Unlit)
+    {
+        ViewportResource->ResolveRenderTarget(Graphics->DeviceContext, EResourceType::ERT_Scene);
+    }
+    ViewportResource->ResolveRenderTarget(Graphics->DeviceContext, EResourceType::ERT_Translucent);
+    ViewportResource->ResolveRenderTarget(Graphics->DeviceContext, EResourceType::ERT_Editor);
+    ViewportResource->ResolveRenderTarget(Graphics->DeviceContext, EResourceType::ERT_EditorOverlay);
+
     {
         // Compositing: 위에서 렌더한 결과들을 하나로 합쳐서 뷰포트의 최종 이미지를 만드는 작업
         QUICK_SCOPE_CYCLE_COUNTER(CompositingPass_CPU)

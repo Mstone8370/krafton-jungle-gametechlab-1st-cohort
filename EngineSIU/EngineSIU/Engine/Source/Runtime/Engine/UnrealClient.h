@@ -63,6 +63,7 @@ enum class EDownSampleScale : uint8
 struct FRenderTargetResource
 {
     ComPtr<ID3D11Texture2D> Texture2D;
+    ComPtr<ID3D11Texture2D> MSAATexture2D;
     ComPtr<ID3D11RenderTargetView> RTV;
     ComPtr<ID3D11ShaderResourceView> SRV;
 };
@@ -72,6 +73,9 @@ struct FDepthStencilResource
     ComPtr<ID3D11Texture2D> Texture2D;
     ComPtr<ID3D11DepthStencilView> DSV;
     ComPtr<ID3D11ShaderResourceView> SRV;
+    ComPtr<ID3D11ShaderResourceView> MSAASRV;
+    ComPtr<ID3D11Texture2D> ResolvedTexture2D;
+    ComPtr<ID3D11RenderTargetView> ResolvedRTV;
 };
 
 class FViewportResource
@@ -120,6 +124,11 @@ public:
     // 지정한 타입의 렌더 타겟 뷰를 clear
     void ClearRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
 
+    void ResolveRenderTarget(ID3D11DeviceContext* DeviceContext, EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_None);
+
+    bool IsMSAAEnabled() const { return MSAASampleCount > 1; }
+    uint32 GetMSAASampleCount() const { return MSAASampleCount; }
+
     ////////
     /// ClearColor
     ////////
@@ -135,8 +144,16 @@ private:
     // DirectX
     D3D11_VIEWPORT D3DViewport = {};
 
+    static constexpr uint32 RequestedMSAASampleCount = 4;
+    uint32 MSAASampleCount = 1;
+    uint32 MSAASampleQuality = 0;
+
     TMap<EResourceType, TMap<EDownSampleScale, FDepthStencilResource>> DepthStencils;
     TMap<EResourceType, TMap<EDownSampleScale, FRenderTargetResource>> RenderTargets;
+
+    void InitializeMSAASettings();
+    bool ShouldUseMSAARenderTarget(EResourceType Type, EDownSampleScale DownSampleScale) const;
+    bool ShouldUseMSAADepthStencil(EResourceType Type, EDownSampleScale DownSampleScale) const;
 
     void ReleaseAllResources();
     void ReleaseDepthStencil(EResourceType Type, EDownSampleScale DownSampleScale = EDownSampleScale::DSS_MAX);
